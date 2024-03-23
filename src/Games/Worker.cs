@@ -1,6 +1,6 @@
 using PalpiteFC.Worker.Integrations.Interfaces;
 using PalpiteFC.Worker.Repository.Entities;
-using PalpiteFC.Worker.Repository.Interface;
+using PalpiteFC.Worker.Repository.Interfaces;
 
 namespace PalpiteFC.Worker.Games;
 

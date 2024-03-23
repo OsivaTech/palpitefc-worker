@@ -1,4 +1,4 @@
-﻿namespace PalpiteFC.Worker.Repository;
+﻿namespace PalpiteFC.Worker.Repository.Settings;
 
 public class DbSettings
 {

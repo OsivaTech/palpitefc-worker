@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PalpiteFC.Worker.Integrations.Interfaces;
+using PalpiteFC.Worker.Integrations.Providers;
 
 namespace PalpiteFC.Worker.Integrations.Extensions;
 

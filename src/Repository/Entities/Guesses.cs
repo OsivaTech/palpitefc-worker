@@ -1,4 +1,4 @@
-﻿namespace PalpiteFC.Api.Domain.Entities.Database;
+﻿namespace PalpiteFC.Worker.Repository.Entities;
 
 public class Guesses : BaseEntity
 {

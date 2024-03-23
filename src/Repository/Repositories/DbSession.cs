@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
 using MySql.Data.MySqlClient;
+using PalpiteFC.Worker.Repository.Settings;
 using System.Data;
 
-namespace PalpiteFC.Worker.Repository;
+namespace PalpiteFC.Worker.Repository.Repositories;
 
 public sealed class DbSession : IDisposable
 {

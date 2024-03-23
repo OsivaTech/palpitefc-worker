@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Options;
-using PalpiteFC.Api.Domain.Entities.ApiFootball;
-using PalpiteFC.Worker.Guesses.Interface;
+using PalpiteFC.Worker.Guesses.Interfaces;
 using PalpiteFC.Worker.Guesses.Settings;
-using PalpiteFC.Worker.Repository.Interface;
+using PalpiteFC.Worker.Integrations.Entities;
+using PalpiteFC.Worker.Repository.Interfaces;
 
-namespace PalpiteFC.Worker.Guesses.Util;
+namespace PalpiteFC.Worker.Guesses.Services;
 public class PointsService : IPointsService
 {
     private readonly IGuessesRepository _guessesRepository;
@@ -19,7 +19,7 @@ public class PointsService : IPointsService
         _pointsSettings = pointsSettings;
     }
 
-    public async Task<int> CalculatePoints(Api.Domain.Entities.Database.Guesses guess, Match fixture, int points)
+    public async Task<int> CalculatePoints(Repository.Entities.Guesses guess, Match fixture, int points)
     {
         var hasVoted = await _guessesRepository.SelectByUserIdAndGameId(guess.UserId, guess.GameId);
         if (hasVoted.Any())

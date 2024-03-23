@@ -1,6 +1,7 @@
 using PalpiteFC.Worker.Games;
 using PalpiteFC.Worker.Integrations.Extensions;
-using PalpiteFC.Worker.Repository;
+using PalpiteFC.Worker.Repository.Extensions;
+using PalpiteFC.Worker.Repository.Settings;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddHostedService<Worker>();

@@ -1,6 +1,6 @@
 ﻿using Dapper;
-using PalpiteFC.Api.Domain.Entities.Database;
-using PalpiteFC.Worker.Repository.Interface;
+using PalpiteFC.Worker.Repository.Entities;
+using PalpiteFC.Worker.Repository.Interfaces;
 
 namespace PalpiteFC.Worker.Repository.Repositories;
 

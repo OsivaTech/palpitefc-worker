@@ -1,6 +1,6 @@
 ﻿using PalpiteFC.Worker.Repository.Entities;
 
-namespace PalpiteFC.Worker.Repository.Interface;
+namespace PalpiteFC.Worker.Repository.Interfaces;
 
 public interface IFixturesRepository : IBaseRepository<Fixtures>
 {

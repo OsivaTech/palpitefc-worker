@@ -2,7 +2,7 @@
 using PalpiteFC.Worker.Integrations.Interfaces;
 using System.Text.Json;
 
-namespace PalpiteFC.Worker.Integrations;
+namespace PalpiteFC.Worker.Integrations.Providers;
 
 public class ApiFootballProvider : IApiFootballProvider
 {

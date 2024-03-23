@@ -1,6 +1,4 @@
-﻿using PalpiteFC.Api.Domain.Entities.Database;
-
-namespace PalpiteFC.Worker.Repository.Entities;
+﻿namespace PalpiteFC.Worker.Repository.Entities;
 public class UserPoints : BaseEntity
 {
     public int UserId { get; set; }

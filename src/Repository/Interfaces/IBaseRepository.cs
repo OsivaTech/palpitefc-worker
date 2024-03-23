@@ -1,6 +1,6 @@
-﻿using PalpiteFC.Api.Domain.Entities.Database;
+﻿using PalpiteFC.Worker.Repository.Entities;
 
-namespace PalpiteFC.Worker.Repository.Interface;
+namespace PalpiteFC.Worker.Repository.Interfaces;
 
 public interface IBaseRepository<TEntity> where TEntity : BaseEntity
 {

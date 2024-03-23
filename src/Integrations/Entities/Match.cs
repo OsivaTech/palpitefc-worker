@@ -1,4 +1,4 @@
-﻿namespace PalpiteFC.Api.Domain.Entities.ApiFootball;
+﻿namespace PalpiteFC.Worker.Integrations.Entities;
 
 public class Match
 {

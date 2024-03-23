@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using PalpiteFC.Worker.Repository.Interface;
+using PalpiteFC.Worker.Repository.Interfaces;
 using PalpiteFC.Worker.Repository.Repositories;
 
-namespace PalpiteFC.Worker.Repository;
+namespace PalpiteFC.Worker.Repository.Extensions;
 
 public static class ServiceCollectionExtensions
 {
