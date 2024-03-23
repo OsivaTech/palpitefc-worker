@@ -1,4 +1,4 @@
-﻿using PalpiteFC.Api.Domain.Entities.ApiFootball;
+﻿using PalpiteFC.Worker.Integrations.Entities;
 using PalpiteFC.Worker.Integrations.Interfaces;
 using System.Text.Json;
 
@@ -6,6 +6,7 @@ namespace PalpiteFC.Worker.Integrations;
 
 public class ApiFootballProvider : IApiFootballProvider
 {
+    private static readonly JsonSerializerOptions _serializerOptions = new() { PropertyNameCaseInsensitive = true };
     private readonly HttpClient _httpClient;
 
     public ApiFootballProvider(HttpClient httpClient)
@@ -13,15 +14,15 @@ public class ApiFootballProvider : IApiFootballProvider
         _httpClient = httpClient;
     }
 
-    public async Task<IEnumerable<Match>> GetMatchesByLeagueId(string leagueId, string fromDate, string toDate)
+    public async Task<IEnumerable<Match>> GetMatchesByLeagueId(int leagueId, int season, string fromDate, string toDate)
     {
-        var uri = $"/v3/fixtures?league={leagueId}&season=2024&from={fromDate}&to={toDate}";
+        var uri = $"/v3/fixtures?league={leagueId}&season={season}&from={fromDate}&to={toDate}&timezone=America/Sao_Paulo";
 
         var response = await _httpClient.GetAsync(uri);
 
         var content = await response.Content.ReadAsStringAsync();
 
-        var result = JsonSerializer.Deserialize<ApiFootballResult<Match>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var result = JsonSerializer.Deserialize<ApiFootballResult<Match>>(content, _serializerOptions);
 
         return result!.Response!;
     }
@@ -33,7 +34,7 @@ public class ApiFootballProvider : IApiFootballProvider
 
         var content = await response.Content.ReadAsStringAsync();
 
-        var result = JsonSerializer.Deserialize<ApiFootballResult<Match>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var result = JsonSerializer.Deserialize<ApiFootballResult<Match>>(content, _serializerOptions);
 
         return result!.Response!.FirstOrDefault(new Match());
     }

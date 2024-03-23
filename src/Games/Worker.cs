@@ -1,23 +1,98 @@
+using PalpiteFC.Worker.Integrations.Interfaces;
+using PalpiteFC.Worker.Repository.Entities;
+using PalpiteFC.Worker.Repository.Interface;
+
 namespace PalpiteFC.Worker.Games;
 
 public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
+    private readonly ILeaguesRepository _leaguesRepository;
+    private readonly IFixturesRepository _fixturesRepository;
+    private readonly ITeamsRepository _teamsRepository;
+    private readonly ITeamsGamesRepository _teamsGamesRepository;
+    private readonly IApiFootballProvider _apiFootballProvider;
 
-    public Worker(ILogger<Worker> logger)
+    public Worker(ILeaguesRepository leaguesRepository,
+                  IFixturesRepository fixturesRepository,
+                  ITeamsGamesRepository teamsGamesRepository,
+                  ITeamsRepository teamsRepository,
+                  IApiFootballProvider apiFootballProvider,
+                  ILogger<Worker> logger)
     {
         _logger = logger;
+        _leaguesRepository = leaguesRepository;
+        _fixturesRepository = fixturesRepository;
+        _apiFootballProvider = apiFootballProvider;
+        _teamsRepository = teamsRepository;
+        _teamsGamesRepository = teamsGamesRepository;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            if (_logger.IsEnabled(LogLevel.Information))
+            var from = DateTime.Now.ToString("yyyy-MM-dd");
+            var to = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
+            var season = DateTime.Now.Year;
+
+            _logger.LogInformation("Retreiving Leagues Ids from database");
+
+            var leagues = _leaguesRepository.Select().Result.Select(x => x.Id);
+
+            _logger.LogInformation("Retreiving fixtures from ApiFootball");
+
+            var tasks = leagues.Select(async champId 
+                => await _apiFootballProvider.GetMatchesByLeagueId(champId, season, from, to));
+            var matchesArray = await Task.WhenAll(tasks);
+
+            _logger.LogInformation("Starting data processing");
+
+            var matchesJoined = matchesArray.Where(x => x is not null).SelectMany(x => x);
+
+            var fixtures = new List<Fixtures>();
+            var teamsGames = new List<TeamsGame>();
+            var teams = new List<Teams>();
+
+            foreach (var item in matchesJoined)
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                var fixtureId = item.Fixture!.Id.GetValueOrDefault();
+                var homeTeamId = item.Teams!.Home!.Id.GetValueOrDefault();
+                var awayTeamId = item.Teams!.Away!.Id.GetValueOrDefault();
+
+                fixtures.Add(new()
+                {
+                    Id = fixtureId,
+                    ChampionshipId = item.League!.Id.GetValueOrDefault(),
+                    Name = item.League.Name,
+                    Start = item.Fixture.Date.GetValueOrDefault(),
+                    Finished = item.Fixture.Status!.Long!.Equals("Match Finished", StringComparison.OrdinalIgnoreCase)
+                });
+
+                teamsGames.AddRange(new[]
+                {
+                    new TeamsGame { GameId = fixtureId, TeamId = homeTeamId, Gol = item.Goals!.Home.GetValueOrDefault() },
+                    new TeamsGame { GameId = fixtureId, TeamId = awayTeamId, Gol = item.Goals!.Away.GetValueOrDefault() }
+                });
+
+                teams.AddRange(new[]
+                {
+                    new Teams { Id = homeTeamId, Name = item.Teams.Home.Name, Image = item.Teams.Home.Logo },
+                    new Teams { Id = awayTeamId, Name = item.Teams.Away.Name, Image = item.Teams.Away.Logo }
+                });
             }
-            await Task.Delay(1000, stoppingToken);
+
+            _logger.LogInformation("Saving data on database");
+
+            await Task.WhenAll(
+                _fixturesRepository.InsertOrUpdate(fixtures),
+                _teamsGamesRepository.InsertOrUpdate(teamsGames),
+                _teamsRepository.InsertOrUpdate(teams)
+            );
+
+            _logger.LogInformation("Service finished processing");
+
+            await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
         }
     }
 }
