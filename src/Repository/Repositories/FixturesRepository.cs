@@ -42,12 +42,12 @@ public class FixturesRepository : IFixturesRepository
 
     public async Task<Fixtures> Select(int id)
         => await _session.Connection.QuerySingleAsync<Fixtures>("SELECT * FROM Fixtures WHERE id = @id", new { id }, _session.Transaction);
-    public async Task<IEnumerable<Fixtures>> Select(DateTime startDate, DateTime endDate)
+    public async Task<IEnumerable<Fixtures>> Select(DateTime startDate, DateTime endDate, bool finished)
     {
         var query = @"SELECT * FROM games
-                        WHERE start BETWEEN @startDate AND @endDate";
+                        WHERE start BETWEEN @startDate AND @endDate and finished = @finished and id = 85";
 
-        return await _session.Connection.QueryAsync<Fixtures>(query, new { startDate, endDate }, _session.Transaction);
+        return await _session.Connection.QueryAsync<Fixtures>(query, new { startDate, endDate, finished }, _session.Transaction);
     }
 
     public async Task Update(Fixtures entity)

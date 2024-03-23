@@ -19,8 +19,8 @@ internal class UserPointsRepository : IUserPointsRepository
 
     public async Task Insert(UserPoints entity)
     {
-        await _dbSession.Connection.ExecuteAsync("INSERT INTO userPoints (gameId, points, createdAt, updatedAt) " +
-            "VALUES (@gameId, @points, current_timestamp(3), current_timestamp(3));", entity, _dbSession.Transaction);
+        await _dbSession.Connection.ExecuteAsync("INSERT INTO userPoints (userId, gameId, points, createdAt, updatedAt) " +
+            "VALUES (@userId, @gameId, @points, current_timestamp(3), current_timestamp(3));", entity, _dbSession.Transaction);
     }
 
     public Task<IEnumerable<UserPoints>> Select()
