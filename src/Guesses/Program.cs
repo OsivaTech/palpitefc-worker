@@ -1,21 +1,46 @@
 using PalpiteFC.Worker.Guesses;
-using PalpiteFC.Worker.Integrations.Extensions;
-using PalpiteFC.Worker.Guesses.Settings;
-using PalpiteFC.Worker.Repository.Extensions;
-using PalpiteFC.Worker.Repository.Settings;
 using PalpiteFC.Worker.Guesses.Interfaces;
 using PalpiteFC.Worker.Guesses.Services;
+using PalpiteFC.Worker.Guesses.Settings;
+using PalpiteFC.Worker.Integrations.Extensions;
+using PalpiteFC.Worker.Repository.Extensions;
+using PalpiteFC.Worker.Repository.Settings;
+using Serilog;
 
-var builder = Host.CreateApplicationBuilder(args);
+try
+{
+    Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console(outputTemplate: "{Timestamp:dd-MM-yyyy HH:mm:ss} [{Level:u3}] [{ThreadId}] {Message}{NewLine}{Exception}")
+    .CreateLogger();
 
-builder.Services.AddHostedService<Worker>();
+    var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.Configure<DbSettings>(builder.Configuration.GetSection("Settings:Database:MySql"));
-builder.Services.Configure<PointsSettings>(builder.Configuration.GetSection("Settings:PointsConfig:Points"));
-builder.Services.AddTransient<IPointsService, PointsService>();
-builder.Services.AddDatabase();
-builder.Services.AddIntegrationServices(builder.Configuration);
+    Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
 
-var host = builder.Build();
+    Log.Information("Configuring service.");
 
-host.Run();
+    builder.Services.AddSerilog(Log.Logger);
+
+    builder.Services.AddHostedService<Worker>();
+
+    builder.Services.Configure<DbSettings>(builder.Configuration.GetSection("Settings:Database:MySql"));
+    builder.Services.Configure<PointsSettings>(builder.Configuration.GetSection("Settings:PointsConfig:Points"));
+    builder.Services.AddTransient<IPointsService, PointsService>();
+    builder.Services.AddDatabase();
+    builder.Services.AddIntegrationServices(builder.Configuration);
+
+    var host = builder.Build();
+
+    Log.Information("Service configured. Starting...");
+
+    host.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Host terminated unexpectedly: {Message}", ex.Message);
+}
+finally
+{
+    Log.Information("Server Shutting down...");
+    Log.CloseAndFlush();
+}

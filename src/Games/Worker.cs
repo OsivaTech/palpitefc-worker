@@ -43,7 +43,7 @@ public class Worker : BackgroundService
             _logger.LogInformation("Retreiving fixtures from ApiFootball");
 
             var tasks = leagues.Select(async champId 
-                => await _apiFootballProvider.GetMatchesByLeagueId(champId, season, from, to));
+                => await _apiFootballProvider.GetFixtures(champId, season, from, to));
             var matchesArray = await Task.WhenAll(tasks);
 
             _logger.LogInformation("Starting data processing");
