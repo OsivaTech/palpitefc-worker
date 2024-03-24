@@ -8,38 +8,40 @@ namespace PalpiteFC.Worker.Guesses;
 public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
+    private readonly Queue<Fixtures> _queue = new();
     private readonly IFixturesRepository _fixturesRepository;
-    private Queue<Fixtures> _queue = new();
     private readonly IApiFootballProvider _apiFootballProvider;
     private readonly IGuessesRepository _guessesRepository;
     private readonly IUserPointsRepository _userPointsRepository;
     private readonly IPointsService _pointsService;
 
-    public Worker(ILogger<Worker> logger,
-                  IApiFootballProvider apiFootballProvider,
+    private static readonly string[] finishedStatus = ["PEN", "AET", "FT"];
+
+    public Worker(IApiFootballProvider apiFootballProvider,
                   IGuessesRepository guessesRepository,
                   IUserPointsRepository userPointsRepository,
                   IFixturesRepository fixturesRepository,
-                  IPointsService pointsService)
+                  IPointsService pointsService,
+                  ILogger<Worker> logger)
     {
-        _logger = logger;
         _apiFootballProvider = apiFootballProvider;
         _guessesRepository = guessesRepository;
         _userPointsRepository = userPointsRepository;
         _fixturesRepository = fixturesRepository;
         _pointsService = pointsService;
+        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                _logger.LogInformation("Finding for fixtures: {time}", DateTimeOffset.Now);
+                _logger.LogInformation("Finding for fixtures...");
+
                 //buscar por jogos da data atual de acordo os dados do banco e a data atual
-                var fixtures = await _fixturesRepository.Select(DateTime.Now.Date, DateTime.Now.Date.AddDays(1).AddSeconds(-1), true);
+                var fixtures = await _fixturesRepository.Select(DateTime.Now.Date, DateTime.Now.Date.AddDays(1).AddSeconds(-1));
 
                 _logger.LogInformation("Found {count} fixtures", fixtures.Count());
 
@@ -47,37 +49,33 @@ public class Worker : BackgroundService
 
                 while (_queue.TryDequeue(out var fixture))
                 {
-                    if (fixture.Start <= DateTime.Now.AddMinutes(-90))
-                    {
-                        _ = Task.Run(async () =>
-                        {
-                            await ProcessarPartida(fixture.Id, stoppingToken);
-                        }, stoppingToken);
-                    }
-                    else
+                    if (fixture.Start >= DateTime.Now.AddMinutes(-90))
                     {
                         _queue.Enqueue(fixture);
+                        await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+
+                        continue;
                     }
+
+                    _ = Task.Run(async () => await ProcessGuesses(fixture.Id, stoppingToken), stoppingToken);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                _logger.LogError("An error occurred while processing fixtures");
+                _logger.LogError(ex, "An error occurred while processing fixtures: {Message}", ex.Message);
             }
-            await Task.Delay(600000, stoppingToken);
+
+            await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
         }
     }
 
-    private async Task ProcessarPartida(int id, CancellationToken stoppingToken)
+    private async Task ProcessGuesses(int id, CancellationToken stoppingToken)
     {
-        UserPoints userPoints = new();
-        //busca resultado da partida na api de futebol
         while (true)
         {
-            int points = 0;
             //verificar se o resultado da partida já está disponível
-            var fixture = await _apiFootballProvider.GetMatch(id);
-            _logger.LogInformation($"Processing fixture {id} - {fixture.League!.Name} - {fixture.Teams!.Home!.Name} vs {fixture.Teams.Away!.Name}");
+            var fixture = await _apiFootballProvider.GetFixture(id);
+
             if (fixture is null)
             {
                 _logger.LogInformation("Fixture {id} not found, enqueuing again", id);
@@ -85,10 +83,14 @@ public class Worker : BackgroundService
                 break;
             }
 
-            if (fixture.Fixture!.Status!.Short == "FT")
+            _logger.LogInformation("Processing fixture {FixtureId} - {League} - {HomeTeam} vs {AwayTeam}",
+                    id, fixture.League?.Name, fixture.Teams?.Home?.Name, fixture.Teams?.Away?.Name);
+
+            if (IsFinished(fixture.Fixture?.Status?.Short ?? string.Empty))
             {
                 //buscar por palpites no banco
                 var guesses = await _guessesRepository.SelectByFixtureId(id);
+
                 if (guesses is null)
                 {
                     _logger.LogInformation("No guesses found for fixture {id}", id);
@@ -97,21 +99,28 @@ public class Worker : BackgroundService
 
                 guesses.ToList().ForEach(async guess =>
                 {
+                    var earnedPoints = await _pointsService.CalculatePoints(guess, fixture);
 
-                    points = await _pointsService.CalculatePoints(guess, fixture, points);
-                    if (points > 0)
+                    if (earnedPoints > 0)
                     {
-                        userPoints.Points = points;
-                        userPoints.UserId = guess.UserId;
-                        userPoints.GameId = guess.GameId;
-                        await _userPointsRepository.Insert(userPoints);
+                        _logger.LogInformation("Guess {Id} is correct. User {UserId} won {Points} points", guess.Id, guess.UserId, earnedPoints);
+
+                        await _userPointsRepository.Insert(new()
+                        {
+                            UserId = guess.UserId,
+                            GameId = guess.GameId,
+                            Points = earnedPoints
+                        });
                     }
                 });
 
-                //salvar pontos dos usuários
                 break;
             }
-            await Task.Delay(60000, stoppingToken);
+            _logger.LogInformation("Fixture {id} not finished yet, trying again soon", id);
+
+            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+
+            static bool IsFinished(string status) => finishedStatus.Contains(status);
         }
     }
 }

@@ -33,6 +33,9 @@ internal class UserPointsRepository : IUserPointsRepository
         throw new NotImplementedException();
     }
 
+    public async Task<IEnumerable<UserPoints>> SelectByUserId(int userId)
+        => await _dbSession.Connection.QueryAsync<UserPoints>("SELECT * FROM userPoints WHERE userId = @userId", new { userId }, _dbSession.Transaction);
+
     public Task Update(UserPoints entity)
     {
         throw new NotImplementedException();

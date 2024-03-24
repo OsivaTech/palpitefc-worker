@@ -62,6 +62,7 @@ public class GuessesRepository : IGuessesRepository
     
     public async Task<Guesses> Select(int id)
         => await _session.Connection.QuerySingleAsync<Guesses>("SELECT * FROM palpitations WHERE id = @id", new { id }, _session.Transaction);
+
     public async Task<IEnumerable<Guesses>> SelectByFixtureId(int id)
         => await _session.Connection.QueryAsync<Guesses>("SELECT * FROM palpitations WHERE gameId = @id", new { id }, _session.Transaction);
 

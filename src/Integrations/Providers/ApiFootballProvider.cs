@@ -14,7 +14,7 @@ public class ApiFootballProvider : IApiFootballProvider
         _httpClient = httpClient;
     }
 
-    public async Task<IEnumerable<Match>> GetMatchesByLeagueId(int leagueId, int season, string fromDate, string toDate)
+    public async Task<IEnumerable<Match>> GetFixtures(int leagueId, int season, string fromDate, string toDate)
     {
         var uri = $"/v3/fixtures?league={leagueId}&season={season}&from={fromDate}&to={toDate}&timezone=America/Sao_Paulo";
 
@@ -26,7 +26,8 @@ public class ApiFootballProvider : IApiFootballProvider
 
         return result!.Response!;
     }
-    public async Task<Match> GetMatch(int fixtureId)
+
+    public async Task<Match> GetFixture(int fixtureId)
     {
         var uri = $"/v3/fixtures?id={fixtureId}";
 

@@ -5,36 +5,34 @@ using PalpiteFC.Worker.Integrations.Entities;
 using PalpiteFC.Worker.Repository.Interfaces;
 
 namespace PalpiteFC.Worker.Guesses.Services;
+
 public class PointsService : IPointsService
 {
-    private readonly IGuessesRepository _guessesRepository;
     private readonly IUserPointsRepository _userPointsRepository;
-    private readonly ILogger<PointsService> _logger;
     private readonly IOptions<PointsSettings> _pointsSettings;
-    public PointsService(IGuessesRepository guessesRepository, IUserPointsRepository userPointsRepository, ILogger<PointsService> logger, IOptions<PointsSettings> pointsSettings)
+    private readonly ILogger<PointsService> _logger;
+
+    public PointsService(IOptions<PointsSettings> pointsSettings, IUserPointsRepository userPointsRepository, ILogger<PointsService> logger)
     {
-        _guessesRepository = guessesRepository;
+        _pointsSettings = pointsSettings;
         _userPointsRepository = userPointsRepository;
         _logger = logger;
-        _pointsSettings = pointsSettings;
     }
 
-    public async Task<int> CalculatePoints(Repository.Entities.Guesses guess, Match fixture, int points)
+    public async Task<int> CalculatePoints(Repository.Entities.Guesses guesses, Match fixture)
     {
-        var hasVoted = await _guessesRepository.SelectByUserIdAndGameId(guess.UserId, guess.GameId);
-        if (hasVoted.Any())
+        var existingPoint = await _userPointsRepository.SelectByUserId(guesses.UserId);
+
+        if (existingPoint.Any(w => w.GameId == guesses.GameId))
         {
-            _logger.LogInformation("User {userId} has already voted for game {gameId}", guess.UserId, guess.GameId);
+            _logger.LogInformation("User {userId} has already points for game {gameId}", guesses.UserId, guesses.GameId);
             return 0;
         }
-        _logger.LogInformation("Calculating points for user {id} and guess {guess}", guess.UserId, guess.Id);
-        var isValidGuess = guess.FirstTeamGol == fixture.Goals!.Home.GetValueOrDefault() && guess.SecondTeamGol == fixture.Goals!.Away.GetValueOrDefault();
-        if (isValidGuess)
-        {
-            _logger.LogInformation("Guess {id} is correct, won 10 points", guess.Id);
-            points = _pointsSettings.Value.HitResult;
-        }
 
-        return points;
+        _logger.LogInformation("Calculating points for user {id} and guess {guess}", guesses.UserId, guesses.Id);
+
+        var isValidGuess = guesses.FirstTeamGol == fixture.Goals?.Home && guesses.SecondTeamGol == fixture.Goals?.Away;
+
+        return isValidGuess ? _pointsSettings.Value.HitResult : 0;
     }
 }
