@@ -40,8 +40,8 @@ public class Worker : BackgroundService
             {
                 _logger.LogInformation("Finding for fixtures...");
 
-                //buscar por jogos da data atual de acordo os dados do banco e a data atual
-                var fixtures = await _fixturesRepository.Select(DateTime.Now.Date, DateTime.Now.Date.AddDays(1).AddSeconds(-1));
+                var date = DateTime.UtcNow.AddHours(-3).Date;
+                var fixtures = await _fixturesRepository.Select(date, date.AddDays(1).AddTicks(-1));
 
                 _logger.LogInformation("Found {count} fixtures", fixtures.Count());
 
@@ -49,7 +49,7 @@ public class Worker : BackgroundService
 
                 while (_queue.TryDequeue(out var fixture))
                 {
-                    if (fixture.Start >= DateTime.Now.AddMinutes(-90))
+                    if (fixture.Start >= DateTime.UtcNow.AddMinutes(-90))
                     {
                         _queue.Enqueue(fixture);
                         await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
@@ -58,14 +58,20 @@ public class Worker : BackgroundService
                     }
 
                     _ = Task.Run(async () => await ProcessGuesses(fixture.Id, stoppingToken), stoppingToken);
+                    await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
                 }
+
+                await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while processing fixtures: {Message}", ex.Message);
-            }
+                _logger.LogError(ex, "An error occurred: {Message}", ex.Message);
 
-            await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
+                var timespan = TimeSpan.FromSeconds(30);
+                _logger.LogInformation("Restarting service in {time}", timespan);
+
+                await Task.Delay(timespan, stoppingToken);
+            }
         }
     }
 
@@ -85,9 +91,14 @@ public class Worker : BackgroundService
             _logger.LogInformation("Processing fixture {FixtureId} - {League} - {HomeTeam} vs {AwayTeam}",
                     id, fixture.League?.Name, fixture.Teams?.Home?.Name, fixture.Teams?.Away?.Name);
 
+            if (fixture.Fixture?.Status?.Short?.Equals("NS", StringComparison.OrdinalIgnoreCase) ?? true)
+            {
+                _logger.LogInformation("Fixture {id} not started. Breaking operation.", id);
+                break;
+            }
+
             if (IsFinished(fixture.Fixture?.Status?.Short ?? string.Empty))
             {
-                //buscar por palpites no banco
                 var guesses = await _guessesRepository.SelectByFixtureId(id);
 
                 if (guesses.Any() is false)
@@ -115,7 +126,7 @@ public class Worker : BackgroundService
             }
             _logger.LogInformation("Fixture {id} not finished yet, trying again soon", id);
 
-            await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken);
+            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
 
             static bool IsFinished(string status) => finishedStatus.Contains(status);
         }
