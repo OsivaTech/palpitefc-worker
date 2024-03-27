@@ -21,6 +21,16 @@ public class PointsService : IPointsService
 
     public async Task<int> CalculatePoints(Repository.Entities.Guesses guesses, Match fixture)
     {
+        _logger.LogInformation("Calculating points for user {id} and guess {guess}", guesses.UserId, guesses.Id);
+
+        var isValidGuess = guesses.FirstTeamGol == fixture.Goals?.Home && guesses.SecondTeamGol == fixture.Goals?.Away;
+
+        if (isValidGuess is false)
+        {
+            _logger.LogInformation("Guess {Id} is wrong. User {UserId} did not win any points", guesses.Id, guesses.UserId);
+            return 0;
+        }
+
         var existingPoint = await _userPointsRepository.SelectByUserId(guesses.UserId);
 
         if (existingPoint.Any(w => w.GameId == guesses.GameId))
@@ -29,10 +39,10 @@ public class PointsService : IPointsService
             return 0;
         }
 
-        _logger.LogInformation("Calculating points for user {id} and guess {guess}", guesses.UserId, guesses.Id);
+        var earnedPoints = _pointsSettings.Value.HitResult;
 
-        var isValidGuess = guesses.FirstTeamGol == fixture.Goals?.Home && guesses.SecondTeamGol == fixture.Goals?.Away;
+        _logger.LogInformation("Guess {Id} is correct. User {UserId} won {Points} points", guesses.Id, guesses.UserId, earnedPoints);
 
-        return isValidGuess ? _pointsSettings.Value.HitResult : 0;
+        return earnedPoints;
     }
 }

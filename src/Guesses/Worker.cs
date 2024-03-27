@@ -73,13 +73,12 @@ public class Worker : BackgroundService
     {
         while (true)
         {
-            //verificar se o resultado da partida já está disponível
+            _logger.LogInformation("Retreiving fixture {id} informations.", id);
             var fixture = await _apiFootballProvider.GetFixture(id);
 
             if (fixture is null)
             {
-                _logger.LogInformation("Fixture {id} not found, enqueuing again", id);
-                _queue.Enqueue(await _fixturesRepository.Select(id));
+                _logger.LogInformation("Fixture {id} was not found. Breaking operation.", id);
                 break;
             }
 
@@ -91,9 +90,9 @@ public class Worker : BackgroundService
                 //buscar por palpites no banco
                 var guesses = await _guessesRepository.SelectByFixtureId(id);
 
-                if (guesses is null)
+                if (guesses.Any() is false)
                 {
-                    _logger.LogInformation("No guesses found for fixture {id}", id);
+                    _logger.LogInformation("No guesses found for fixture {id}. Breaking operation.", id);
                     break;
                 }
 
@@ -103,8 +102,6 @@ public class Worker : BackgroundService
 
                     if (earnedPoints > 0)
                     {
-                        _logger.LogInformation("Guess {Id} is correct. User {UserId} won {Points} points", guess.Id, guess.UserId, earnedPoints);
-
                         await _userPointsRepository.Insert(new()
                         {
                             UserId = guess.UserId,
@@ -118,7 +115,7 @@ public class Worker : BackgroundService
             }
             _logger.LogInformation("Fixture {id} not finished yet, trying again soon", id);
 
-            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken);
 
             static bool IsFinished(string status) => finishedStatus.Contains(status);
         }
