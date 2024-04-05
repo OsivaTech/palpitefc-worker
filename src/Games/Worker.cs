@@ -86,7 +86,7 @@ public class Worker : BackgroundService
                         Id = fixtureId,
                         ChampionshipId = item.League!.Id.GetValueOrDefault(),
                         Name = item.League.Name,
-                        Start = item.Fixture.Date.GetValueOrDefault().UtcDateTime,
+                        Start = item.Fixture.Date.GetValueOrDefault().DateTime,
                         Finished = item.Fixture.Status!.Long!.Equals("Match Finished", StringComparison.OrdinalIgnoreCase)
                     });
 
