@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 using PalpiteFC.Worker.Repository.Settings;
 using System.Data;
 
@@ -10,7 +10,7 @@ public sealed class DbSession : IDisposable
     #region Fields
 
     public IDbConnection Connection { get; }
-    public IDbTransaction Transaction { get; set; }
+    public IDbTransaction? Transaction { get; set; }
 
     #endregion
 
