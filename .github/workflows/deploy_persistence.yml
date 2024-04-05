@@ -1,0 +1,66 @@
+name: Deploy Persistence
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/Persistence/**'
+      - 'src/Integrations/**'
+      - 'src/Repository/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    env:
+      APP_NAME: palpitefc-worker-persistence
+      APP_DIRECTORY: /home/www/palpitefc-worker-persistence
+      DLL_NAME: PalpiteFC.Worker.Persistence.dll
+      CSPROJ_FILE: src/Persistence/Persistence.csproj
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Create Directory
+        run: mkdir -p ${{ env.APP_DIRECTORY }}
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1.7.2
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install Dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build ${{ env.CSPROJ_FILE }} --configuration Release --no-restore
+
+      - name: Publish
+        run: dotnet publish ${{ env.CSPROJ_FILE }} -c Release -o ${{ env.APP_DIRECTORY }}
+
+      - name: Create systemd service file
+        run: |
+          echo "[Unit]
+          Description=PalpiteFC Worker Persistence
+
+          [Service]
+          WorkingDirectory=${{ env.APP_DIRECTORY }}
+          ExecStart=/usr/bin/dotnet ${{ env.APP_DIRECTORY }}/${{ env.DLL_NAME }}
+          Restart=always
+          RestartSec=10
+          KillSignal=SIGINT
+          SyslogIdentifier=${{ env.APP_NAME }}
+          Environment=ASPNETCORE_ENVIRONMENT=Production
+          Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+
+          [Install]
+          WantedBy=default.target" > ~/.config/systemd/user/${{ env.APP_NAME }}.service
+
+      - name: Start Service
+        run: |
+          export XDG_RUNTIME_DIR=/run/user/$(id -u)
+          systemctl --user daemon-reload
+          systemctl --user enable ${{ env.APP_NAME }}.service
+          systemctl --user restart ${{ env.APP_NAME }}.service
