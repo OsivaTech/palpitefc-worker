@@ -40,7 +40,7 @@ public class Worker : BackgroundService
             {
                 _logger.LogInformation("Finding for fixtures...");
 
-                var date = DateTime.UtcNow.AddHours(-3).Date;
+                var date = DateTime.Now.Date;
                 var fixtures = await _fixturesRepository.Select(date, date.AddDays(1).AddTicks(-1));
 
                 _logger.LogInformation("Found {count} fixtures", fixtures.Count());
@@ -49,7 +49,7 @@ public class Worker : BackgroundService
 
                 while (_queue.TryDequeue(out var fixture))
                 {
-                    if (fixture.Start >= DateTime.UtcNow.AddMinutes(-90))
+                    if (fixture.Start >= DateTime.Now.AddMinutes(-90))
                     {
                         _queue.Enqueue(fixture);
                         await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
