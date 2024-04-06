@@ -35,15 +35,7 @@ public class Worker : BackgroundService
         {
             try
             {
-                var now = DateTime.UtcNow.AddHours(-3);
-
-                var request = new FixturesRequest
-                {
-                    FromDate = now.ToString("yyyy-MM-dd"),
-                    ToDate = now.AddDays(1).ToString("yyyy-MM-dd"),
-                    Season = now.Year,
-                    Timezone = "America/Sao_Paulo"
-                };
+                var dates = new DateTime[] { DateTime.Now, DateTime.Now.AddDays(1) };
 
                 _logger.LogInformation("Retreiving Leagues Ids from database");
 
@@ -59,10 +51,17 @@ public class Worker : BackgroundService
                 _logger.LogInformation("Retreived {count} leagues", leagues.Count());
                 _logger.LogInformation("Retreiving fixtures from ApiFootball");
 
-                var tasks = leagues.Select(async champId =>
+                var tasks = dates.Select(async date =>
                 {
-                    request.LeagueId = champId;
-                    return await _apiFootballProvider.GetFixtures(request);
+                    var request = new FixturesRequest
+                    {
+                        Date = date.ToString("yyyy-MM-dd"),
+                        Timezone = "America/Sao_Paulo"
+                    };
+
+                    var response = await _apiFootballProvider.GetFixtures(request);
+
+                    return response.Where(x => leagues.Contains(x.League?.Id ?? 0));
                 });
 
                 var matchesArray = await Task.WhenAll(tasks);

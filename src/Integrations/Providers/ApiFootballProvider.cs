@@ -1,4 +1,5 @@
-﻿using PalpiteFC.Worker.Integrations.Entities;
+﻿using Microsoft.AspNetCore.Http.Extensions;
+using PalpiteFC.Worker.Integrations.Entities;
 using PalpiteFC.Worker.Integrations.Interfaces;
 using PalpiteFC.Worker.Integrations.Requests;
 using System.Text.Json;
@@ -17,7 +18,16 @@ public class ApiFootballProvider : IApiFootballProvider
 
     public async Task<IEnumerable<Match>> GetFixtures(FixturesRequest request)
     {
-        var uri = $"/v3/fixtures?league={request.LeagueId}&season={request.Season}&from={request.FromDate}&to={request.ToDate}&timezone={request.Timezone}";
+        var queryBuilder = new QueryBuilder();
+
+        if (request.LeagueId > 0) queryBuilder.Add("league", request.LeagueId.ToString());
+        if (request.Season > 0) queryBuilder.Add("season", request.Season.ToString());
+        if (!string.IsNullOrWhiteSpace(request.Date)) queryBuilder.Add("date", request.Date);
+        if (!string.IsNullOrWhiteSpace(request.FromDate)) queryBuilder.Add("from", request.FromDate);
+        if (!string.IsNullOrWhiteSpace(request.ToDate)) queryBuilder.Add("to", request.ToDate);
+        if (!string.IsNullOrWhiteSpace(request.Timezone)) queryBuilder.Add("timezone", request.Timezone);
+
+        var uri = $"/v3/fixtures{queryBuilder.ToQueryString()}";
 
         var response = await _httpClient.GetAsync(uri);
 
