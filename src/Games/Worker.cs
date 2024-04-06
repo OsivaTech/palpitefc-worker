@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Options;
+using PalpiteFC.Worker.Games.Settings;
 using PalpiteFC.Worker.Integrations.Interfaces;
 using PalpiteFC.Worker.Integrations.Requests;
 using PalpiteFC.Worker.Repository.Entities;
@@ -13,13 +15,15 @@ public class Worker : BackgroundService
     private readonly ITeamsRepository _teamsRepository;
     private readonly ITeamsGamesRepository _teamsGamesRepository;
     private readonly IApiFootballProvider _apiFootballProvider;
+    private readonly IOptions<WorkerSettings> _options;
 
     public Worker(ILeaguesRepository leaguesRepository,
                   IFixturesRepository fixturesRepository,
                   ITeamsGamesRepository teamsGamesRepository,
                   ITeamsRepository teamsRepository,
                   IApiFootballProvider apiFootballProvider,
-                  ILogger<Worker> logger)
+                  ILogger<Worker> logger,
+                  IOptions<WorkerSettings> options)
     {
         _logger = logger;
         _leaguesRepository = leaguesRepository;
@@ -27,6 +31,7 @@ public class Worker : BackgroundService
         _apiFootballProvider = apiFootballProvider;
         _teamsRepository = teamsRepository;
         _teamsGamesRepository = teamsGamesRepository;
+        _options = options;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -44,7 +49,7 @@ public class Worker : BackgroundService
                 if (leagues.Any() is false)
                 {
                     _logger.LogWarning("No league id found");
-                    await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
+                    await Task.Delay(_options.Value.RestartDelay, stoppingToken);
                     continue;
                 }
 
@@ -112,17 +117,15 @@ public class Worker : BackgroundService
 
                 _logger.LogInformation("Service finished processing");
 
-                await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
+                await Task.Delay(_options.Value.LoopDelay, stoppingToken);
 
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred: {Message}", ex.Message);
+                _logger.LogInformation("Restarting service in {Time}", _options.Value.RestartDelay);
 
-                var timespan = TimeSpan.FromSeconds(30);
-                _logger.LogInformation("Restarting service in {Time}", timespan);
-
-                await Task.Delay(timespan, stoppingToken);
+                await Task.Delay(_options.Value.RestartDelay, stoppingToken);
             }
         }
     }

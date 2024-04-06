@@ -9,12 +9,12 @@ namespace PalpiteFC.Worker.Guesses.Services;
 public class PointsService : IPointsService
 {
     private readonly IUserPointsRepository _userPointsRepository;
-    private readonly IOptions<PointsSettings> _pointsSettings;
+    private readonly IOptions<WorkerSettings> _workerSettings;
     private readonly ILogger<PointsService> _logger;
 
-    public PointsService(IOptions<PointsSettings> pointsSettings, IUserPointsRepository userPointsRepository, ILogger<PointsService> logger)
+    public PointsService(IOptions<WorkerSettings> workerSettings, IUserPointsRepository userPointsRepository, ILogger<PointsService> logger)
     {
-        _pointsSettings = pointsSettings;
+        _workerSettings = workerSettings;
         _userPointsRepository = userPointsRepository;
         _logger = logger;
     }
@@ -39,7 +39,7 @@ public class PointsService : IPointsService
             return 0;
         }
 
-        var earnedPoints = _pointsSettings.Value.HitResult;
+        var earnedPoints = _workerSettings.Value.Points!.HitResult;
 
         _logger.LogInformation("Guess {GuessId} is correct. User {UserId} won {Points} points", guesses.Id, guesses.UserId, earnedPoints);
 

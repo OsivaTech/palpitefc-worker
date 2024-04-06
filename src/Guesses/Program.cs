@@ -24,7 +24,7 @@ try
     builder.Services.AddHostedService<Worker>();
 
     builder.Services.Configure<DbSettings>(builder.Configuration.GetSection("Settings:Database:MySql"));
-    builder.Services.Configure<PointsSettings>(builder.Configuration.GetSection("Settings:PointsConfig:Points"));
+    builder.Services.Configure<WorkerSettings>(builder.Configuration.GetSection("Settings:Worker"));
     builder.Services.AddTransient<IPointsService, PointsService>();
     builder.Services.AddDatabase();
     builder.Services.AddIntegrationServices(builder.Configuration);

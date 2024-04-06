@@ -1,4 +1,6 @@
+using Microsoft.Extensions.Options;
 using PalpiteFC.Worker.Guesses.Interfaces;
+using PalpiteFC.Worker.Guesses.Settings;
 using PalpiteFC.Worker.Integrations.Interfaces;
 using PalpiteFC.Worker.Repository.Entities;
 using PalpiteFC.Worker.Repository.Interfaces;
@@ -14,6 +16,7 @@ public class Worker : BackgroundService
     private readonly IGuessesRepository _guessesRepository;
     private readonly IUserPointsRepository _userPointsRepository;
     private readonly IPointsService _pointsService;
+    private readonly IOptions<WorkerSettings> _options;
 
     private static readonly string[] finishedStatus = ["PEN", "AET", "FT"];
 
@@ -22,7 +25,8 @@ public class Worker : BackgroundService
                   IUserPointsRepository userPointsRepository,
                   IFixturesRepository fixturesRepository,
                   IPointsService pointsService,
-                  ILogger<Worker> logger)
+                  ILogger<Worker> logger,
+                  IOptions<WorkerSettings> options)
     {
         _apiFootballProvider = apiFootballProvider;
         _guessesRepository = guessesRepository;
@@ -30,6 +34,7 @@ public class Worker : BackgroundService
         _fixturesRepository = fixturesRepository;
         _pointsService = pointsService;
         _logger = logger;
+        _options = options;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -40,8 +45,7 @@ public class Worker : BackgroundService
             {
                 _logger.LogInformation("Finding for fixtures...");
 
-                var date = DateTime.Now.Date;
-                var fixtures = await _fixturesRepository.Select(date, date.AddDays(1).AddTicks(-1));
+                var fixtures = await _fixturesRepository.Select(DateTime.Now.Date, DateTime.Now.Date.AddDays(1).AddTicks(-1));
 
                 _logger.LogInformation("Found {FixtureCount} fixtures", fixtures.Count());
 
@@ -49,28 +53,25 @@ public class Worker : BackgroundService
 
                 while (_queue.TryDequeue(out var fixture))
                 {
-                    if (fixture.Start >= DateTime.Now.AddMinutes(-90))
+                    await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+
+                    if (fixture.Start >= DateTime.Now.AddMinutes(_options.Value.ProcessGuessesAfter.TotalMinutes * -1))
                     {
                         _queue.Enqueue(fixture);
-                        await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
-
                         continue;
                     }
 
                     _ = Task.Run(async () => await ProcessGuesses(fixture.Id, stoppingToken), stoppingToken);
-                    await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
                 }
 
-                await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
+                await Task.Delay(_options.Value.LoopDelay, stoppingToken);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred: {Message}", ex.Message);
+                _logger.LogInformation("Restarting service in {Time}", _options.Value.RestartDelay);
 
-                var timespan = TimeSpan.FromSeconds(30);
-                _logger.LogInformation("Restarting service in {Time}", timespan);
-
-                await Task.Delay(timespan, stoppingToken);
+                await Task.Delay(_options.Value.RestartDelay, stoppingToken);
             }
         }
     }
@@ -107,7 +108,7 @@ public class Worker : BackgroundService
                     break;
                 }
 
-                guesses.ToList().ForEach(async guess =>
+                _ = guesses.Select(async guess =>
                 {
                     var earnedPoints = await _pointsService.CalculatePoints(guess, fixture);
 
@@ -124,9 +125,10 @@ public class Worker : BackgroundService
 
                 break;
             }
+
             _logger.LogInformation("Fixture {FixtureId} not finished yet, trying again soon", id);
 
-            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+            await Task.Delay(_options.Value.CheckGameDelay, stoppingToken);
 
             static bool IsFinished(string status) => finishedStatus.Contains(status);
         }

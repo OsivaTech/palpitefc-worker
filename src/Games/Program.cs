@@ -1,4 +1,5 @@
 using PalpiteFC.Worker.Games;
+using PalpiteFC.Worker.Games.Settings;
 using PalpiteFC.Worker.Integrations.Extensions;
 using PalpiteFC.Worker.Repository.Extensions;
 using PalpiteFC.Worker.Repository.Settings;
@@ -20,6 +21,7 @@ try
 
     builder.Services.AddHostedService<Worker>();
     builder.Services.Configure<DbSettings>(builder.Configuration.GetSection("Settings:Database:MySql"));
+    builder.Services.Configure<WorkerSettings>(builder.Configuration.GetSection("Settings:Worker"));
 
     builder.Services.AddIntegrationServices(builder.Configuration);
     builder.Services.AddDatabase();
