@@ -43,7 +43,7 @@ public class Worker : BackgroundService
                 var date = DateTime.Now.Date;
                 var fixtures = await _fixturesRepository.Select(date, date.AddDays(1).AddTicks(-1));
 
-                _logger.LogInformation("Found {count} fixtures", fixtures.Count());
+                _logger.LogInformation("Found {FixtureCount} fixtures", fixtures.Count());
 
                 fixtures.ToList().ForEach(_queue.Enqueue);
 
@@ -68,7 +68,7 @@ public class Worker : BackgroundService
                 _logger.LogError(ex, "An error occurred: {Message}", ex.Message);
 
                 var timespan = TimeSpan.FromSeconds(30);
-                _logger.LogInformation("Restarting service in {time}", timespan);
+                _logger.LogInformation("Restarting service in {Time}", timespan);
 
                 await Task.Delay(timespan, stoppingToken);
             }
@@ -79,12 +79,12 @@ public class Worker : BackgroundService
     {
         while (true)
         {
-            _logger.LogInformation("Retreiving fixture {id} informations.", id);
+            _logger.LogInformation("Retreiving fixture {FixtureId} informations.", id);
             var fixture = await _apiFootballProvider.GetFixture(id);
 
             if (fixture is null)
             {
-                _logger.LogInformation("Fixture {id} was not found. Breaking operation.", id);
+                _logger.LogInformation("Fixture {FixtureId} was not found. Breaking operation.", id);
                 break;
             }
 
@@ -93,7 +93,7 @@ public class Worker : BackgroundService
 
             if (fixture.Fixture?.Status?.Short?.Equals("NS", StringComparison.OrdinalIgnoreCase) ?? true)
             {
-                _logger.LogInformation("Fixture {id} not started. Breaking operation.", id);
+                _logger.LogInformation("Fixture {FixtureId} not started. Breaking operation.", id);
                 break;
             }
 
@@ -103,7 +103,7 @@ public class Worker : BackgroundService
 
                 if (guesses.Any() is false)
                 {
-                    _logger.LogInformation("No guesses found for fixture {id}. Breaking operation.", id);
+                    _logger.LogInformation("No guesses found for fixture {FixtureId}. Breaking operation.", id);
                     break;
                 }
 
@@ -124,7 +124,7 @@ public class Worker : BackgroundService
 
                 break;
             }
-            _logger.LogInformation("Fixture {id} not finished yet, trying again soon", id);
+            _logger.LogInformation("Fixture {FixtureId} not finished yet, trying again soon", id);
 
             await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
 

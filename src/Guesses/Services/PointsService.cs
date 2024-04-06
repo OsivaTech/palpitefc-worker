@@ -21,13 +21,13 @@ public class PointsService : IPointsService
 
     public async Task<int> CalculatePoints(Repository.Entities.Guesses guesses, Match fixture)
     {
-        _logger.LogInformation("Calculating points for user {id} and guess {guess}", guesses.UserId, guesses.Id);
+        _logger.LogInformation("Calculating points for user {UserId} and guess {GuessId}", guesses.UserId, guesses.Id);
 
         var isValidGuess = guesses.FirstTeamGol == fixture.Goals?.Home && guesses.SecondTeamGol == fixture.Goals?.Away;
 
         if (isValidGuess is false)
         {
-            _logger.LogInformation("Guess {Id} is wrong. User {UserId} did not win any points", guesses.Id, guesses.UserId);
+            _logger.LogInformation("Guess {GuessId} is wrong. User {UserId} did not win any points", guesses.Id, guesses.UserId);
             return 0;
         }
 
@@ -35,13 +35,13 @@ public class PointsService : IPointsService
 
         if (existingPoint.Any(w => w.GameId == guesses.GameId))
         {
-            _logger.LogInformation("User {userId} has already points for game {gameId}", guesses.UserId, guesses.GameId);
+            _logger.LogInformation("User {UserId} has already points for game {GameId}", guesses.UserId, guesses.GameId);
             return 0;
         }
 
         var earnedPoints = _pointsSettings.Value.HitResult;
 
-        _logger.LogInformation("Guess {Id} is correct. User {UserId} won {Points} points", guesses.Id, guesses.UserId, earnedPoints);
+        _logger.LogInformation("Guess {GuessId} is correct. User {UserId} won {Points} points", guesses.Id, guesses.UserId, earnedPoints);
 
         return earnedPoints;
     }

@@ -48,7 +48,7 @@ public class Worker : BackgroundService
                     continue;
                 }
 
-                _logger.LogInformation("Retreived {count} leagues", leagues.Count());
+                _logger.LogInformation("Retreived {LeagueCount} leagues", leagues.Count());
                 _logger.LogInformation("Retreiving fixtures from ApiFootball");
 
                 var tasks = dates.Select(async date =>
@@ -67,7 +67,7 @@ public class Worker : BackgroundService
                 var matchesArray = await Task.WhenAll(tasks);
                 var matchesJoined = matchesArray.Where(x => x is not null).SelectMany(x => x);
 
-                _logger.LogInformation("Retreived {count} fixtures", matchesJoined.Count());
+                _logger.LogInformation("Retreived {FixtureCount} fixtures", matchesJoined.Count());
                 _logger.LogInformation("Starting data processing");
 
                 var fixtures = new List<Fixtures>();
@@ -120,7 +120,7 @@ public class Worker : BackgroundService
                 _logger.LogError(ex, "An error occurred: {Message}", ex.Message);
 
                 var timespan = TimeSpan.FromSeconds(30);
-                _logger.LogInformation("Restarting service in {time}", timespan);
+                _logger.LogInformation("Restarting service in {Time}", timespan);
 
                 await Task.Delay(timespan, stoppingToken);
             }
