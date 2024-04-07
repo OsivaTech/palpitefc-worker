@@ -78,59 +78,66 @@ public class Worker : BackgroundService
 
     private async Task ProcessGuesses(int id, CancellationToken stoppingToken)
     {
-        while (true)
+        try
         {
-            _logger.LogInformation("Retreiving fixture {FixtureId} informations.", id);
-            var fixture = await _apiFootballProvider.GetFixture(id);
-
-            if (fixture is null)
+            while (true)
             {
-                _logger.LogInformation("Fixture {FixtureId} was not found. Breaking operation.", id);
-                break;
-            }
+                _logger.LogInformation("Retreiving fixture {FixtureId} informations.", id);
+                var fixture = await _apiFootballProvider.GetFixture(id);
 
-            _logger.LogInformation("Processing fixture {FixtureId} - {League} - {HomeTeam} vs {AwayTeam}",
-                    id, fixture.League?.Name, fixture.Teams?.Home?.Name, fixture.Teams?.Away?.Name);
-
-            if (fixture.Fixture?.Status?.Short?.Equals("NS", StringComparison.OrdinalIgnoreCase) ?? true)
-            {
-                _logger.LogInformation("Fixture {FixtureId} not started. Breaking operation.", id);
-                break;
-            }
-
-            if (IsFinished(fixture.Fixture?.Status?.Short ?? string.Empty))
-            {
-                var guesses = await _guessesRepository.SelectByFixtureId(id);
-
-                if (guesses.Any() is false)
+                if (fixture is null)
                 {
-                    _logger.LogInformation("No guesses found for fixture {FixtureId}. Breaking operation.", id);
+                    _logger.LogInformation("Fixture {FixtureId} was not found. Breaking operation.", id);
                     break;
                 }
 
-                _ = guesses.Select(async guess =>
+                _logger.LogInformation("Processing fixture {FixtureId} - {League} - {HomeTeam} vs {AwayTeam}",
+                        id, fixture.League?.Name, fixture.Teams?.Home?.Name, fixture.Teams?.Away?.Name);
+
+                if (fixture.Fixture?.Status?.Short?.Equals("NS", StringComparison.OrdinalIgnoreCase) ?? true)
                 {
-                    var earnedPoints = await _pointsService.CalculatePoints(guess, fixture);
+                    _logger.LogInformation("Fixture {FixtureId} not started. Breaking operation.", id);
+                    break;
+                }
 
-                    if (earnedPoints > 0)
+                if (IsFinished(fixture.Fixture?.Status?.Short ?? string.Empty))
+                {
+                    var guesses = await _guessesRepository.SelectByFixtureId(id);
+
+                    if (guesses.Any() is false)
                     {
-                        await _userPointsRepository.Insert(new()
-                        {
-                            UserId = guess.UserId,
-                            GameId = guess.GameId,
-                            Points = earnedPoints
-                        });
+                        _logger.LogInformation("No guesses found for fixture {FixtureId}. Breaking operation.", id);
+                        break;
                     }
-                });
 
-                break;
+                    guesses.ToList().ForEach(async guess =>
+                    {
+                        var earnedPoints = await _pointsService.CalculatePoints(guess, fixture);
+
+                        if (earnedPoints > 0)
+                        {
+                            await _userPointsRepository.Insert(new()
+                            {
+                                UserId = guess.UserId,
+                                GameId = guess.GameId,
+                                Points = earnedPoints
+                            });
+                        }
+                    });
+
+                    break;
+                }
+
+                _logger.LogInformation("Fixture {FixtureId} not finished yet, trying again soon", id);
+
+                await Task.Delay(_options.Value.CheckGameDelay, stoppingToken);
+
+                static bool IsFinished(string status) => finishedStatus.Contains(status);
             }
-
-            _logger.LogInformation("Fixture {FixtureId} not finished yet, trying again soon", id);
-
-            await Task.Delay(_options.Value.CheckGameDelay, stoppingToken);
-
-            static bool IsFinished(string status) => finishedStatus.Contains(status);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred: {Message}", ex.Message);
         }
     }
 }
