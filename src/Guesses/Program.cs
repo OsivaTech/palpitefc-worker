@@ -25,7 +25,10 @@ try
 
     builder.Services.Configure<DbSettings>(builder.Configuration.GetSection("Settings:Database:MySql"));
     builder.Services.Configure<WorkerSettings>(builder.Configuration.GetSection("Settings:Worker"));
+    
     builder.Services.AddTransient<IPointsService, PointsService>();
+    builder.Services.AddTransient<IGuessesService, GuessesService>();
+    
     builder.Services.AddDatabase();
     builder.Services.AddIntegrationServices(builder.Configuration);
 

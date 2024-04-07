@@ -115,8 +115,7 @@ public class Worker : BackgroundService
                     _teamsRepository.InsertOrUpdate(teams)
                 );
 
-                _logger.LogInformation("Service finished processing");
-
+                _logger.LogInformation("Service finished processing! Starting again in {LoopDelay}.", _options.Value.LoopDelay);
                 await Task.Delay(_options.Value.LoopDelay, stoppingToken);
 
             }
