@@ -41,14 +41,13 @@ jobs:
         run: dotnet publish ${{ env.CSPROJ_FILE }} -c Release -o ${{ env.APP_DIRECTORY }}
 
       - name: App Settings Variable Substitution
-        uses: microsoft/variable-substitution@v1
+        uses: qetza/replacetokens-action@v1.1.2
         with:
-          files: '${{ env.APP_DIRECTORY }}/appsettings.json'
-        env:
-          Settings.Database.MySql.UserId: ${{ secrets.MYSQL_USERID }}
-          Settings.Database.MySql.Password: ${{ secrets.MYSQL_PASSWORD }}
-          Settings.Integrations.ApiFootball.Key: ${{ secrets.APIFOOTBALL_KEY }}
-          Serilog.WriteTo.1.Args.credentials.password: ${{ secrets.LOKI_PASSWORD }}
+          sources: '${{ env.APP_DIRECTORY }}/appsettings.Production.json'
+          variables: '[${{ toJSON(vars) }},${{ toJSON(secrets) }}]'
+
+      - name: Remove escaped quotes from JSON
+        run: sed -i 's/\\"/"/g' ${{ env.APP_DIRECTORY }}/appsettings.Production.json
 
       - name: Create systemd service file
         run: |
