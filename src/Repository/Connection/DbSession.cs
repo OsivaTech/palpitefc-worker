@@ -3,7 +3,7 @@ using MySqlConnector;
 using PalpiteFC.Worker.Repository.Settings;
 using System.Data;
 
-namespace PalpiteFC.Worker.Repository.Repositories;
+namespace PalpiteFC.Worker.Repository.Connection;
 
 public sealed class DbSession : IDisposable
 {

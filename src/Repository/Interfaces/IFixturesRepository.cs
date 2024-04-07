@@ -2,9 +2,8 @@
 
 namespace PalpiteFC.Worker.Repository.Interfaces;
 
-public interface IFixturesRepository : IBaseRepository<Fixtures>
+public interface IFixturesRepository
 {
-    Task<int> InsertAndGetId(Fixtures entity);
-    Task InsertOrUpdate(IEnumerable<Fixtures> list);
     Task<IEnumerable<Fixtures>> Select(DateTime startDate, DateTime endDate);
+    Task InsertOrUpdate(IEnumerable<Fixtures> list);
 }

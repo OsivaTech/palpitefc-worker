@@ -1,6 +1,4 @@
-﻿using PalpiteFC.Worker.Repository.Interfaces;
-
-namespace PalpiteFC.Worker.Repository.Repositories;
+﻿namespace PalpiteFC.Worker.Repository.Connection;
 
 public sealed class UnitOfWork : IUnitOfWork
 {

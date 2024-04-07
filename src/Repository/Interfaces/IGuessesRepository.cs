@@ -2,9 +2,7 @@
 
 namespace PalpiteFC.Worker.Repository.Interfaces;
 
-public interface IGuessesRepository : IBaseRepository<Guesses>
+public interface IGuessesRepository
 {
-    Task<int> InsertAndGetId(Guesses entity);
     Task<IEnumerable<Guesses>> SelectByFixtureId(int id);
-    Task<IEnumerable<Guesses>> SelectByUserIdAndGameId(int userId, int gameId);
 }

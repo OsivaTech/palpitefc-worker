@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PalpiteFC.Worker.Repository.Connection;
 using PalpiteFC.Worker.Repository.Interfaces;
 using PalpiteFC.Worker.Repository.Repositories;
 

@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using PalpiteFC.Worker.Repository.Connection;
 using PalpiteFC.Worker.Repository.Entities;
 using PalpiteFC.Worker.Repository.Interfaces;
 
@@ -23,16 +24,6 @@ public class TeamsRepository : ITeamsRepository
 
     #region Public Methods
 
-    public Task Delete(int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task Insert(Teams entity)
-    {
-        throw new NotImplementedException();
-    }
-
     public async Task InsertOrUpdate(IEnumerable<Teams> list)
     {
         var query = @"INSERT INTO teams (
@@ -56,18 +47,5 @@ public class TeamsRepository : ITeamsRepository
         await _session.Connection.ExecuteAsync(query, list, _session.Transaction);
     }
 
-    public async Task<IEnumerable<Teams>> Select()
-        => await _session.Connection.QueryAsync<Teams>("SELECT * FROM teams", null, _session.Transaction);
-
-    public Task<Teams> Select(int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task Update(Teams entity)
-    {
-        throw new NotImplementedException();
-    }
-    public Task Update(int id) => throw new NotImplementedException();
     #endregion
 }

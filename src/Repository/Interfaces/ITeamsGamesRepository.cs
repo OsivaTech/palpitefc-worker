@@ -2,7 +2,7 @@
 
 namespace PalpiteFC.Worker.Repository.Interfaces;
 
-public interface ITeamsGamesRepository : IBaseRepository<TeamsGame>
+public interface ITeamsGamesRepository
 {
     Task InsertOrUpdate(IEnumerable<TeamsGame> list);
 }

@@ -2,8 +2,9 @@
 
 namespace PalpiteFC.Worker.Repository.Interfaces;
 
-public interface ILeaguesRepository : IBaseRepository<Championships>
+public interface ILeaguesRepository
 {
-    Task<int> InsertAndGetId(Championships entity);
+    Task<IEnumerable<Leagues>> Select();
+    Task<int> InsertAndGetId(Leagues entity);
 }
 

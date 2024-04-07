@@ -1,4 +1,4 @@
-﻿namespace PalpiteFC.Worker.Repository.Interfaces;
+﻿namespace PalpiteFC.Worker.Repository.Connection;
 public interface IUnitOfWork : IDisposable
 {
     void BeginTransaction();

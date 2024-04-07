@@ -8,6 +8,4 @@ public class Guesses : BaseEntity
     public int SecondTeamGol { get; set; }
     public int UserId { get; set; }
     public int GameId { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
 }

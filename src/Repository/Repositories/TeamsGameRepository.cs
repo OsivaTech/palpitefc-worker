@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using PalpiteFC.Worker.Repository.Connection;
 using PalpiteFC.Worker.Repository.Entities;
 using PalpiteFC.Worker.Repository.Interfaces;
 
@@ -22,16 +23,6 @@ public class TeamsGameRepository : ITeamsGamesRepository
     #endregion
 
     #region Public Methods
-
-    public Task Delete(int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task Insert(TeamsGame obj)
-    {
-        throw new NotImplementedException();
-    }
 
     public async Task InsertOrUpdate(IEnumerable<TeamsGame> list)
     {
@@ -57,18 +48,5 @@ public class TeamsGameRepository : ITeamsGamesRepository
         await _session.Connection.ExecuteAsync(query, list, _session.Transaction);
     }
 
-    public async Task<IEnumerable<TeamsGame>> Select()
-        => await _session.Connection.QueryAsync<TeamsGame>("SELECT * FROM teamsGame", null, _session.Transaction);
-
-    public Task<TeamsGame> Select(int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task Update(TeamsGame obj)
-    {
-        throw new NotImplementedException();
-    }
-    public Task Update(int id) => throw new NotImplementedException();
     #endregion
 }
