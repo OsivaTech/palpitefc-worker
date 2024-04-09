@@ -1,7 +1,7 @@
-﻿using PalpiteFC.Worker.Guesses.Interfaces;
+﻿using PalpiteFC.Libraries.Persistence.Abstractions.Entities;
+using PalpiteFC.Libraries.Persistence.Abstractions.Repositories;
+using PalpiteFC.Worker.Guesses.Interfaces;
 using PalpiteFC.Worker.Integrations.Interfaces;
-using PalpiteFC.Worker.Repository.Entities;
-using PalpiteFC.Worker.Repository.Interfaces;
 
 namespace PalpiteFC.Worker.Guesses.Services;
 
@@ -36,7 +36,7 @@ public class GuessesService : IGuessesService
 
     #endregion
 
-    public async Task ProcessAsync(Fixtures fixture, PointSeasons pointSeason, Queue<Fixtures> fixturesQueue)
+    public async Task ProcessAsync(Fixture fixture, PointSeason pointSeason, Queue<Fixture> fixturesQueue)
     {
         try
         {

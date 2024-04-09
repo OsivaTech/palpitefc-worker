@@ -1,8 +1,8 @@
+using PalpiteFC.Libraries.Persistence.Database.Extensions;
+using PalpiteFC.Libraries.Persistence.Database.Settings;
 using PalpiteFC.Worker.Games;
 using PalpiteFC.Worker.Games.Settings;
 using PalpiteFC.Worker.Integrations.Extensions;
-using PalpiteFC.Worker.Repository.Extensions;
-using PalpiteFC.Worker.Repository.Settings;
 using Serilog;
 
 try
@@ -24,7 +24,7 @@ try
     builder.Services.Configure<WorkerSettings>(builder.Configuration.GetSection("Settings:Worker"));
 
     builder.Services.AddIntegrationServices(builder.Configuration);
-    builder.Services.AddDatabase();
+    builder.Services.AddDatabase(true);
 
     var host = builder.Build();
 

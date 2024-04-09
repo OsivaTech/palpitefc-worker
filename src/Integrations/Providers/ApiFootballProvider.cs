@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.Extensions;
-using PalpiteFC.Worker.Integrations.Entities;
 using PalpiteFC.Worker.Integrations.Interfaces;
+using PalpiteFC.Worker.Integrations.Providers.Responses;
 using PalpiteFC.Worker.Integrations.Requests;
 using System.Text.Json;
 

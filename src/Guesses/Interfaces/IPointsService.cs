@@ -1,8 +1,9 @@
-﻿using PalpiteFC.Worker.Integrations.Entities;
+﻿using PalpiteFC.Libraries.Persistence.Abstractions.Entities;
+using Match = PalpiteFC.Worker.Integrations.Providers.Responses.Match;
 
 namespace PalpiteFC.Worker.Guesses.Interfaces;
 
 public interface IPointsService
 {
-    Task<int> CalculatePoints(Repository.Entities.Guesses guesses, Match fixture);
+    Task<int> CalculatePoints(Guess guess, Match match);
 }

@@ -1,8 +1,8 @@
-﻿using PalpiteFC.Worker.Repository.Entities;
+﻿using PalpiteFC.Libraries.Persistence.Abstractions.Entities;
 
 namespace PalpiteFC.Worker.Guesses.Interfaces;
 
 public interface IGuessesService
 {
-    Task ProcessAsync(Fixtures fixture, PointSeasons pointSeason, Queue<Fixtures> fixturesQueue);
+    Task ProcessAsync(Fixture fixture, PointSeason pointSeason, Queue<Fixture> fixturesQueue);
 }

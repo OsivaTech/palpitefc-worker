@@ -1,4 +1,4 @@
-﻿namespace PalpiteFC.Worker.Integrations.Entities;
+﻿namespace PalpiteFC.Worker.Integrations.Providers.Responses;
 
 public class ApiFootballResult<T>
 {

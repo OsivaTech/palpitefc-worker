@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Options;
+using PalpiteFC.Libraries.Persistence.Abstractions.Entities;
+using PalpiteFC.Libraries.Persistence.Abstractions.Repositories;
 using PalpiteFC.Worker.Games.Settings;
 using PalpiteFC.Worker.Integrations.Interfaces;
 using PalpiteFC.Worker.Integrations.Requests;
-using PalpiteFC.Worker.Repository.Entities;
-using PalpiteFC.Worker.Repository.Interfaces;
 
 namespace PalpiteFC.Worker.Games;
 
@@ -75,9 +75,9 @@ public class Worker : BackgroundService
                 _logger.LogInformation("Retreived {FixtureCount} fixtures", matchesJoined.Count());
                 _logger.LogInformation("Starting data processing");
 
-                var fixtures = new List<Fixtures>();
-                var teamsGames = new List<TeamsGame>();
-                var teams = new List<Teams>();
+                var fixtures = new List<Fixture>();
+                var matches = new List<Match>();
+                var teams = new List<Team>();
 
                 foreach (var item in matchesJoined)
                 {
@@ -94,16 +94,16 @@ public class Worker : BackgroundService
                         Finished = item.Fixture.Status!.Long!.Equals("Match Finished", StringComparison.OrdinalIgnoreCase)
                     });
 
-                    teamsGames.AddRange(new[]
+                    matches.AddRange(new[]
                     {
-                    new TeamsGame { GameId = fixtureId, TeamId = homeTeamId, Gol = item.Goals!.Home.GetValueOrDefault() },
-                    new TeamsGame { GameId = fixtureId, TeamId = awayTeamId, Gol = item.Goals!.Away.GetValueOrDefault() }
+                    new Match { GameId = fixtureId, TeamId = homeTeamId, Gol = item.Goals!.Home.GetValueOrDefault() },
+                    new Match { GameId = fixtureId, TeamId = awayTeamId, Gol = item.Goals!.Away.GetValueOrDefault() }
                 });
 
                     teams.AddRange(new[]
                     {
-                    new Teams { Id = homeTeamId, Name = item.Teams.Home.Name, Image = item.Teams.Home.Logo },
-                    new Teams { Id = awayTeamId, Name = item.Teams.Away.Name, Image = item.Teams.Away.Logo }
+                    new Team { Id = homeTeamId, Name = item.Teams.Home.Name, Image = item.Teams.Home.Logo },
+                    new Team { Id = awayTeamId, Name = item.Teams.Away.Name, Image = item.Teams.Away.Logo }
                 });
                 }
 
@@ -111,7 +111,7 @@ public class Worker : BackgroundService
 
                 await Task.WhenAll(
                     _fixturesRepository.InsertOrUpdate(fixtures),
-                    _teamsGamesRepository.InsertOrUpdate(teamsGames),
+                    _teamsGamesRepository.InsertOrUpdate(matches),
                     _teamsRepository.InsertOrUpdate(teams)
                 );
 

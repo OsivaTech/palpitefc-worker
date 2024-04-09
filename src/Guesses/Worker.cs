@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Options;
+using PalpiteFC.Libraries.Persistence.Abstractions.Entities;
+using PalpiteFC.Libraries.Persistence.Abstractions.Repositories;
 using PalpiteFC.Worker.Guesses.Interfaces;
 using PalpiteFC.Worker.Guesses.Settings;
-using PalpiteFC.Worker.Repository.Entities;
-using PalpiteFC.Worker.Repository.Interfaces;
 
 namespace PalpiteFC.Worker.Guesses;
 
@@ -33,7 +33,7 @@ public class Worker : BackgroundService
         {
             try
             {
-                var fixturesQueue = new Queue<Fixtures>();
+                var fixturesQueue = new Queue<Fixture>();
 
                 var pointSeason = await _pointSeasonsRepository.SelectCurrent();
 

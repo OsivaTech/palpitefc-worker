@@ -1,10 +1,10 @@
+using PalpiteFC.Libraries.Persistence.Database.Extensions;
+using PalpiteFC.Libraries.Persistence.Database.Settings;
 using PalpiteFC.Worker.Guesses;
 using PalpiteFC.Worker.Guesses.Interfaces;
 using PalpiteFC.Worker.Guesses.Services;
 using PalpiteFC.Worker.Guesses.Settings;
 using PalpiteFC.Worker.Integrations.Extensions;
-using PalpiteFC.Worker.Repository.Extensions;
-using PalpiteFC.Worker.Repository.Settings;
 using Serilog;
 
 try
@@ -29,7 +29,7 @@ try
     builder.Services.AddTransient<IPointsService, PointsService>();
     builder.Services.AddTransient<IGuessesService, GuessesService>();
     
-    builder.Services.AddDatabase();
+    builder.Services.AddDatabase(true);
     builder.Services.AddIntegrationServices(builder.Configuration);
 
     var host = builder.Build();
