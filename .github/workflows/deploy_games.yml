@@ -49,6 +49,9 @@ jobs:
       - name: Remove escaped quotes from JSON
         run: sed -i 's/\\"/"/g' ${{ env.APP_DIRECTORY }}/appsettings.Production.json
 
+      - name: Create services directory
+        run: mkdir -p ~/.config/systemd/user/
+
       - name: Create systemd service file
         run: |
           echo "[Unit]
