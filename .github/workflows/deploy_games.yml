@@ -14,8 +14,8 @@ jobs:
     runs-on: self-hosted
 
     env:
-      APP_NAME: palpitefc-worker-games
-      APP_DIRECTORY: /home/www/palpitefc-worker-games
+      APP_NAME: ${{ vars.GAMES_APP_NAME }}
+      APP_DIRECTORY: ${{ vars.INSTALLATION_DIR }}/${{ vars.GAMES_APP_NAME }}
       DLL_NAME: PalpiteFC.Worker.Games.dll
       CSPROJ_FILE: src/Games/Games.csproj
 
