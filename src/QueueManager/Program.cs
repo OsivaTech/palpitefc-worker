@@ -4,31 +4,61 @@ using PalpiteFC.Libraries.Persistence.Database.Settings;
 using PalpiteFC.Worker.Persistence.Interfaces;
 using PalpiteFC.Worker.Persistence.Services;
 using PalpiteFC.Worker.QueueManager.Consumers;
+using Serilog;
 
-var builder = Host.CreateApplicationBuilder(args);
-
-builder.Services.AddMassTransit(x =>
+try
 {
-    x.AddConsumer<GuessConsumer>();
-    x.UsingRabbitMq((context, cfg) =>
-    {
-        cfg.Host("148.113.183.239", h =>
-        {
-            h.Username("guest");
-            h.Password("guest");
-        });
+    Log.Logger = new LoggerConfiguration()
+        .WriteTo.Console(outputTemplate: "{Timestamp:dd-MM-yyyy HH:mm:ss} [{Level:u3}] [{ThreadId}] {Message}{NewLine}{Exception}")
+        .CreateLogger();
 
-        cfg.ReceiveEndpoint(x =>
+    var builder = Host.CreateApplicationBuilder(args);
+
+    Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
+
+    Log.Information("Configuring service.");
+
+    builder.Services.AddSerilog(Log.Logger);
+
+    builder.Services.AddMassTransit(x =>
+    {
+        x.AddConsumer<GuessConsumer>();
+        x.UsingRabbitMq((context, cfg) =>
         {
-            x.PrefetchCount = 10;
-            x.ConcurrentMessageLimit = 2;
-            x.ConfigureConsumer<GuessConsumer>(context);
+            cfg.Host(builder.Configuration.GetValue<string>("Settings:RabbitMQ:Host"), "/", h =>
+            {
+                h.Username(builder.Configuration.GetValue<string>("Settings:RabbitMQ:Username"));
+                h.Password(builder.Configuration.GetValue<string>("Settings:RabbitMQ:Password"));
+            });
+
+            cfg.ReceiveEndpoint(x =>
+            {
+                x.Durable = false;
+                x.AutoDelete = true;
+
+                x.PrefetchCount = 10;
+                x.ConcurrentMessageLimit = 2;
+                
+                x.ConfigureConsumer<GuessConsumer>(context);
+            });
         });
     });
-});
-builder.Services.Configure<DbSettings>(builder.Configuration.GetSection("Settings:Database:MySql"));
-builder.Services.AddDatabase(true);
-builder.Services.AddTransient<IGuessService, GuessService>();
+    builder.Services.Configure<DbSettings>(builder.Configuration.GetSection("Settings:Database:MySql"));
+    builder.Services.AddDatabase(true);
+    builder.Services.AddTransient<IGuessService, GuessService>();
 
-var host = builder.Build();
-host.Run();
+    var host = builder.Build();
+
+    Log.Information("Service configured. Starting...");
+
+    host.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Host terminated unexpectedly: {Message}", ex.Message);
+}
+finally
+{
+    Log.Information("Server Shutting down...");
+    Log.CloseAndFlush();
+}

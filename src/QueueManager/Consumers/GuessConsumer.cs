@@ -6,12 +6,12 @@ namespace PalpiteFC.Worker.QueueManager.Consumers;
 
 public class GuessConsumer : IConsumer<GuessMessage>
 {
-    private readonly ILogger _logger;
+    private readonly ILogger<GuessConsumer> _logger;
     private readonly IGuessService _guessService;
 
-    public GuessConsumer(IGuessService guessService, ILoggerFactory loggerFactory)
+    public GuessConsumer(IGuessService guessService, ILogger<GuessConsumer> logger)
     {
-        _logger = loggerFactory.CreateLogger<GuessConsumer>();
+        _logger = logger;
         _guessService = guessService;
     }
 
