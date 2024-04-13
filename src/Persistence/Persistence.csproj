@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,10 +7,18 @@
     <UserSecretsId>5d461aa1-278b-4b01-9d30-5fbcb1407c68</UserSecretsId>
     <AssemblyName>PalpiteFC.Worker.Persistence</AssemblyName>
     <RootNamespace>PalpiteFC.Worker.Persistence</RootNamespace>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Mapster" Version="7.4.1-pre01" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+    <PackageReference Include="PalpiteFC.Libraries.Persistence.Abstractions" Version="1.0.0-alfa.4" />
+    <PackageReference Include="PalpiteFC.Libraries.Persistence.Database" Version="1.0.0-alfa.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DataContracts\DataContracts.csproj" />
   </ItemGroup>
 </Project>

@@ -1,12 +1,12 @@
-name: Deploy Persistence
+name: Deploy QueueManager
 
 on:
   push:
     branches: [main]
     paths:
+      - 'src/QueueManager/**'
+      - 'src/DataContracts/**'
       - 'src/Persistence/**'
-      - 'src/Integrations/**'
-      - 'src/Repository/**'
   workflow_dispatch:
 
 jobs:
@@ -14,10 +14,10 @@ jobs:
     runs-on: self-hosted
 
     env:
-      APP_NAME: palpitefc-worker-persistence
-      APP_DIRECTORY: /home/www/palpitefc-worker-persistence
-      DLL_NAME: PalpiteFC.Worker.Persistence.dll
-      CSPROJ_FILE: src/Persistence/Persistence.csproj
+      APP_NAME: ${{ vars.QUEUEMANAGER_APP_NAME }}
+      APP_DIRECTORY: ${{ vars.INSTALLATION_DIR }}/${{ vars.QUEUEMANAGER_APP_NAME }}
+      DLL_NAME: PalpiteFC.Worker.QueueManager.dll
+      CSPROJ_FILE: src/QueueManager/QueueManager.csproj
 
     steps:
       - name: Checkout Repository
@@ -39,11 +39,23 @@ jobs:
 
       - name: Publish
         run: dotnet publish ${{ env.CSPROJ_FILE }} -c Release -o ${{ env.APP_DIRECTORY }}
+        
+      - name: App Settings Variable Substitution
+        uses: qetza/replacetokens-action@v1.1.2
+        with:
+          sources: '${{ env.APP_DIRECTORY }}/appsettings.Production.json'
+          variables: '[${{ toJSON(vars) }},${{ toJSON(secrets) }}]'
 
+      - name: Remove escaped quotes from JSON
+        run: sed -i 's/\"/"/g' ${{ env.APP_DIRECTORY }}/appsettings.Production.json
+
+      - name: Create services directory
+        run: mkdir -p ~/.config/systemd/user/
+        
       - name: Create systemd service file
         run: |
           echo "[Unit]
-          Description=PalpiteFC Worker Persistence
+          Description=PalpiteFC Worker QueueManager
 
           [Service]
           WorkingDirectory=${{ env.APP_DIRECTORY }}
