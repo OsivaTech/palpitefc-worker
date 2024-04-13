@@ -14,8 +14,8 @@ jobs:
     runs-on: self-hosted
 
     env:
-      APP_NAME: palpitefc-worker-guesses
-      APP_DIRECTORY: /home/www/palpitefc-worker-guesses
+      APP_NAME: ${{ vars.GUESSES_APP_NAME }}
+      APP_DIRECTORY: ${{ vars.INSTALLATION_DIR }}/${{ vars.GUESSES_APP_NAME }}
       DLL_NAME: PalpiteFC.Worker.Guesses.dll
       CSPROJ_FILE: src/Guesses/Guesses.csproj
 
@@ -48,6 +48,9 @@ jobs:
 
       - name: Remove escaped quotes from JSON
         run: sed -i 's/\\"/"/g' ${{ env.APP_DIRECTORY }}/appsettings.Production.json
+
+      - name: Create services directory
+        run: mkdir -p ~/.config/systemd/user/
 
       - name: Create systemd service file
         run: |
