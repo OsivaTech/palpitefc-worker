@@ -13,13 +13,13 @@ public class Worker : BackgroundService
     private readonly ILeaguesRepository _leaguesRepository;
     private readonly IFixturesRepository _fixturesRepository;
     private readonly ITeamsRepository _teamsRepository;
-    private readonly ITeamsGamesRepository _teamsGamesRepository;
+    private readonly IMatchesRepository _matchesRepository;
     private readonly IApiFootballProvider _apiFootballProvider;
     private readonly IOptions<WorkerSettings> _options;
 
     public Worker(ILeaguesRepository leaguesRepository,
                   IFixturesRepository fixturesRepository,
-                  ITeamsGamesRepository teamsGamesRepository,
+                  IMatchesRepository matchesRepository,
                   ITeamsRepository teamsRepository,
                   IApiFootballProvider apiFootballProvider,
                   ILogger<Worker> logger,
@@ -30,7 +30,7 @@ public class Worker : BackgroundService
         _fixturesRepository = fixturesRepository;
         _apiFootballProvider = apiFootballProvider;
         _teamsRepository = teamsRepository;
-        _teamsGamesRepository = teamsGamesRepository;
+        _matchesRepository = matchesRepository;
         _options = options;
     }
 
@@ -111,7 +111,7 @@ public class Worker : BackgroundService
 
                 await Task.WhenAll(
                     _fixturesRepository.InsertOrUpdate(fixtures),
-                    _teamsGamesRepository.InsertOrUpdate(matches),
+                    _matchesRepository.InsertOrUpdate(matches),
                     _teamsRepository.InsertOrUpdate(teams)
                 );
 

@@ -13,6 +13,7 @@
     <PackageReference Include="MassTransit" Version="8.2.0" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="8.2.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="PalpiteFC.Libraries.Persistence.Database" Version="1.0.0-alfa.6" />
     <PackageReference Include="Serilog" Version="3.1.1" />
   </ItemGroup>
 
