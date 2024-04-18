@@ -40,7 +40,11 @@ public class Worker : BackgroundService
         {
             try
             {
-                var dates = new DateTime[] { DateTime.Now, DateTime.Now.AddDays(1) };
+                var daysToSearch = _options.Value.DaysToSearch;
+
+                var dates = Enumerable.Range(0, daysToSearch)
+                                      .Select(i => DateTime.Now.AddDays(i))
+                                      .ToList();
 
                 _logger.LogInformation("Retreiving Leagues Ids from database");
 
