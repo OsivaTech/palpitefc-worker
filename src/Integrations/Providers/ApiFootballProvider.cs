@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.Extensions.Logging;
 using PalpiteFC.Worker.Integrations.Interfaces;
 using PalpiteFC.Worker.Integrations.Providers.Responses;
 using PalpiteFC.Worker.Integrations.Requests;
@@ -10,10 +11,12 @@ public class ApiFootballProvider : IApiFootballProvider
 {
     private static readonly JsonSerializerOptions _serializerOptions = new() { PropertyNameCaseInsensitive = true };
     private readonly HttpClient _httpClient;
+    private readonly ILogger<ApiFootballProvider> _logger;
 
-    public ApiFootballProvider(HttpClient httpClient)
+    public ApiFootballProvider(HttpClient httpClient, ILogger<ApiFootballProvider> logger)
     {
         _httpClient = httpClient;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<Match>> GetFixtures(FixturesRequest request)
@@ -45,6 +48,12 @@ public class ApiFootballProvider : IApiFootballProvider
         var response = await _httpClient.GetAsync(uri);
 
         var content = await response.Content.ReadAsStringAsync();
+
+        if (response.IsSuccessStatusCode is false)
+        {
+            _logger.LogWarning("ApiFootball retruns is unsuccess: {Content}", content);
+            return null!;
+        }
 
         var result = JsonSerializer.Deserialize<ApiFootballResult<Match>>(content, _serializerOptions);
 
