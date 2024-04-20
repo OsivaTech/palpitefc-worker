@@ -16,6 +16,7 @@ public class GuessesService : IGuessesService
     private readonly IPointsService _pointsService;
 
     private static readonly string[] finishedStatus = ["PEN", "AET", "FT"];
+    private static readonly string[] unprocessableStatus = ["TBD", "NS", "PST", "CANC", "ABD", "AWD", "WO"];
 
     #endregion
 
@@ -49,14 +50,15 @@ public class GuessesService : IGuessesService
                 return;
             }
 
-            if (IsNotStarted(retreivedFixture.Fixture?.Status?.Short))
+            if (IsUnprocessableStatus(retreivedFixture.Fixture?.Status?.Short))
             {
-                _logger.LogInformation("Fixture {FixtureId} not started. Breaking operation.", fixture.Id);
+                _logger.LogInformation("Fixture {FixtureId} has an unprocessable status: {Status}. Breaking operation.", fixture.Id, retreivedFixture.Fixture?.Status?.Long);
                 return;
             }
 
             if (IsUnfinished(retreivedFixture.Fixture?.Status?.Short))
             {
+                fixturesQueue.Enqueue(fixture);
                 _logger.LogInformation("Fixture {FixtureId} not finished yet, trying again soon", fixture.Id);
                 return;
             }
@@ -92,6 +94,6 @@ public class GuessesService : IGuessesService
         }
 
         static bool IsUnfinished(string? status) => !finishedStatus.Contains(status ?? string.Empty);
-        static bool IsNotStarted(string? status) => status?.Equals("NS", StringComparison.OrdinalIgnoreCase) ?? true;
+        static bool IsUnprocessableStatus(string? status) => unprocessableStatus.Contains(status ?? string.Empty);
     }
 }
