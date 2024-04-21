@@ -39,7 +39,7 @@ public class Worker : BackgroundService
 
                 if (pointSeason is null)
                 {
-                    _logger.LogError("No PointSeason was found for the current period. Breaking operation.");
+                    _logger.LogWarning("No PointSeason was found for the current period. Breaking operation.");
                     await Task.Delay(_options.Value.RestartDelay, stoppingToken);
 
                     continue;

@@ -46,13 +46,13 @@ public class GuessesService : IGuessesService
 
             if (retreivedFixture is null)
             {
-                _logger.LogInformation("Fixture {FixtureId} was not found. Breaking operation.", fixture.Id);
+                _logger.LogWarning("Fixture {FixtureId} was not found. Breaking operation.", fixture.Id);
                 return;
             }
 
             if (IsUnprocessableStatus(retreivedFixture.Fixture?.Status?.Short))
             {
-                _logger.LogInformation("Fixture {FixtureId} has an unprocessable status: {Status}. Breaking operation.", fixture.Id, retreivedFixture.Fixture?.Status?.Long);
+                _logger.LogWarning("Fixture {FixtureId} has an unprocessable status: {Status}. Breaking operation.", fixture.Id, retreivedFixture.Fixture?.Status?.Long);
                 return;
             }
 
@@ -67,7 +67,7 @@ public class GuessesService : IGuessesService
 
             if (guesses.Any() is false)
             {
-                _logger.LogInformation("No guesses found for fixture {FixtureId}. Breaking operation.", fixture.Id);
+                _logger.LogWarning("No guesses found for fixture {FixtureId}. Breaking operation.", fixture.Id);
                 return;
             }
 
