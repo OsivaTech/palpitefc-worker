@@ -2,6 +2,7 @@ using Microsoft.Extensions.Options;
 using PalpiteFC.Libraries.Persistence.Abstractions.Entities;
 using PalpiteFC.Libraries.Persistence.Abstractions.Repositories;
 using PalpiteFC.Worker.Guesses.Interfaces;
+using PalpiteFC.Worker.Guesses.Services;
 using PalpiteFC.Worker.Guesses.Settings;
 
 namespace PalpiteFC.Worker.Guesses;
@@ -33,7 +34,7 @@ public class Worker : BackgroundService
         {
             try
             {
-                var fixturesQueue = new Queue<Fixture>();
+                var queue = new Queue<QueueObject<Fixture>>();
 
                 var pointSeason = await _pointSeasonsRepository.SelectCurrent();
 
@@ -50,18 +51,33 @@ public class Worker : BackgroundService
                 var fixtures = await _fixturesRepository.Select(DateTime.Now.Date, DateTime.Now.Date.AddDays(1).AddTicks(-1));
                 _logger.LogInformation("Found {FixtureCount} fixtures.", fixtures.Count());
 
-                fixtures.ToList().ForEach(fixturesQueue.Enqueue);
+                fixtures.ToList().ForEach(x => queue.Enqueue(new QueueObject<Fixture>(x)));
 
-                while (fixturesQueue.TryDequeue(out var fixture))
+                while (queue.TryDequeue(out var fixture))
                 {
-                    if (fixture.Start >= DateTime.Now.AddMinutes(_options.Value.ProcessGuessesAfter.TotalMinutes * -1))
+                    if (fixture.Data.Start >= DateTime.Now.AddMinutes(_options.Value.ProcessGuessesAfter.TotalMinutes * -1))
                     {
-                        fixturesQueue.Enqueue(fixture);
+                        queue.Enqueue(fixture);
                         await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
                         continue;
                     }
 
-                    await _guessesProcessorService.ProcessAsync(fixture, pointSeason, fixturesQueue);
+                    if (fixture.LastTry >= DateTime.Now.AddMinutes(_options.Value.ReprocessAfter.TotalMinutes * -1))
+                    {
+                        queue.Enqueue(fixture);
+                        await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+                        continue;
+                    }
+
+                    var result = await _guessesProcessorService.TryProcessAsync(fixture.Data, pointSeason);
+
+                    if (result is false)
+                    {
+                        fixture.Tries++;
+                        fixture.LastTry = DateTime.Now;
+
+                        queue.Enqueue(fixture);
+                    }
                 }
 
                 _logger.LogInformation("Service finished processing! Starting again in {LoopDelay}.", _options.Value.LoopDelay);

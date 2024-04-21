@@ -37,7 +37,7 @@ public class GuessesService : IGuessesService
 
     #endregion
 
-    public async Task ProcessAsync(Fixture fixture, PointSeason pointSeason, Queue<Fixture> fixturesQueue)
+    public async Task<bool> TryProcessAsync(Fixture fixture, PointSeason pointSeason)
     {
         try
         {
@@ -47,20 +47,19 @@ public class GuessesService : IGuessesService
             if (retreivedFixture is null)
             {
                 _logger.LogWarning("Fixture {FixtureId} was not found. Breaking operation.", fixture.Id);
-                return;
+                return true;
             }
 
             if (IsUnprocessableStatus(retreivedFixture.Fixture?.Status?.Short))
             {
                 _logger.LogWarning("Fixture {FixtureId} has an unprocessable status: {Status}. Breaking operation.", fixture.Id, retreivedFixture.Fixture?.Status?.Long);
-                return;
+                return true;
             }
 
             if (IsUnfinished(retreivedFixture.Fixture?.Status?.Short))
             {
-                fixturesQueue.Enqueue(fixture);
                 _logger.LogInformation("Fixture {FixtureId} not finished yet, trying again soon", fixture.Id);
-                return;
+                return false;
             }
 
             var guesses = await _guessesRepository.SelectByFixtureId(fixture.Id);
@@ -68,7 +67,7 @@ public class GuessesService : IGuessesService
             if (guesses.Any() is false)
             {
                 _logger.LogWarning("No guesses found for fixture {FixtureId}. Breaking operation.", fixture.Id);
-                return;
+                return true;
             }
 
             foreach (var guess in guesses)
@@ -86,11 +85,13 @@ public class GuessesService : IGuessesService
                     });
                 }
             }
+
+            return true;
         }
         catch (Exception ex)
         {
-            fixturesQueue.Enqueue(fixture);
             _logger.LogError(ex, "An error occurred: {Message}", ex.Message);
+            return false;
         }
 
         static bool IsUnfinished(string? status) => !finishedStatus.Contains(status ?? string.Empty);
