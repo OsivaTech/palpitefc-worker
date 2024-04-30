@@ -24,7 +24,7 @@ public class PointsService : IPointsService
     {
         _logger.LogInformation("Calculating points for user {UserId} and guess {GuessId}", guess.UserId, guess.Id);
 
-        var isValidGuess = guess.FirstTeamGol == match.Goals?.Home && guess.SecondTeamGol == match.Goals?.Away;
+        var isValidGuess = guess.HomeTeamGoals == match.Goals?.Home && guess.AwayTeamGoals == match.Goals?.Away;
 
         if (isValidGuess is false)
         {
@@ -34,9 +34,9 @@ public class PointsService : IPointsService
 
         var existingPoint = await _userPointsRepository.SelectByUserId(guess.UserId);
 
-        if (existingPoint.Any(w => w.GameId == guess.GameId))
+        if (existingPoint.Any(w => w.FixtureId == guess.FixtureId))
         {
-            _logger.LogInformation("User {UserId} has already points for game {GameId}", guess.UserId, guess.GameId);
+            _logger.LogInformation("User {UserId} has already points for game {FixtureId}", guess.UserId, guess.FixtureId);
             return 0;
         }
 

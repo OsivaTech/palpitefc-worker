@@ -79,7 +79,7 @@ public class GuessesService : IGuessesService
                     await _userPointsRepository.Insert(new()
                     {
                         UserId = guess.UserId,
-                        GameId = guess.GameId,
+                        FixtureId = guess.FixtureId,
                         Points = earnedPoints,
                         PointSeasonId = pointSeason.Id
                     });

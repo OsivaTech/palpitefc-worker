@@ -92,7 +92,7 @@ public class Worker : BackgroundService
                     fixtures.Add(new()
                     {
                         Id = fixtureId,
-                        ChampionshipId = item.League!.Id.GetValueOrDefault(),
+                        LeagueId = item.League!.Id.GetValueOrDefault(),
                         Name = item.League.Name,
                         Start = item.Fixture.Date.GetValueOrDefault().DateTime,
                         Finished = item.Fixture.Status!.Long!.Equals("Match Finished", StringComparison.OrdinalIgnoreCase)
@@ -100,8 +100,8 @@ public class Worker : BackgroundService
 
                     matches.AddRange(new[]
                     {
-                    new Match { GameId = fixtureId, TeamId = homeTeamId, Gol = item.Goals!.Home.GetValueOrDefault() },
-                    new Match { GameId = fixtureId, TeamId = awayTeamId, Gol = item.Goals!.Away.GetValueOrDefault() }
+                    new Match { FixtureId = fixtureId, TeamId = homeTeamId, Goals = item.Goals!.Home.GetValueOrDefault() },
+                    new Match { FixtureId = fixtureId, TeamId = awayTeamId, Goals = item.Goals!.Away.GetValueOrDefault() }
                 });
 
                     teams.AddRange(new[]

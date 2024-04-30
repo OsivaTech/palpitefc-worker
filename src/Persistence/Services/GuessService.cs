@@ -26,14 +26,14 @@ public class GuessService : IGuessService
             }
 
             // valida se já existe um palpite para o mesmo jogo e usuário
-            var existingGuess = await _repository.SelectByUserIdAndGameId(guess.UserId, guess.GameId);
+            var existingGuess = await _repository.SelectByUserIdAndFixtureId(guess.UserId, guess.FixtureId);
             if (existingGuess.Any())
             {
-                _logger.LogWarning("Guess already exists for user {UserId} and game {GameId}", guess.UserId, guess.GameId);
+                _logger.LogWarning("Guess already exists for user {UserId} and game {FixtureId}", guess.UserId, guess.FixtureId);
                 return;
             }
 
-            _logger.LogInformation("Inserting guess to user {UserId} and game {GameId}", guess.UserId, guess.GameId);
+            _logger.LogInformation("Inserting guess to user {UserId} and game {FixtureId}", guess.UserId, guess.FixtureId);
             // grava mensagem no banco
             await _repository.Insert(guess.Adapt<Guess>());
         }
