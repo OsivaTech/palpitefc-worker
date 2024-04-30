@@ -14,7 +14,7 @@
     <PackageReference Include="Mapster" Version="7.4.1-pre01" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
-    <PackageReference Include="PalpiteFC.Libraries.Persistence.Abstractions" Version="1.0.0-alfa.6" />
+    <PackageReference Include="PalpiteFC.Libraries.Persistence.Abstractions" Version="1.0.0-alfa.14" />
   </ItemGroup>
 
   <ItemGroup>
