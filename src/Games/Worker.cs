@@ -85,29 +85,32 @@ public class Worker : BackgroundService
 
                 foreach (var item in matchesJoined)
                 {
-                    var fixtureId = item.Fixture!.Id.GetValueOrDefault();
-                    var homeTeamId = item.Teams!.Home!.Id.GetValueOrDefault();
-                    var awayTeamId = item.Teams!.Away!.Id.GetValueOrDefault();
+                    var fixtureId = item.Fixture?.Id.GetValueOrDefault() ?? 0;
+                    var homeTeamId = item.Teams?.Home?.Id.GetValueOrDefault() ?? 0;
+                    var awayTeamId = item.Teams?.Away?.Id.GetValueOrDefault() ?? 0;
 
                     fixtures.Add(new()
                     {
                         Id = fixtureId,
-                        LeagueId = item.League!.Id.GetValueOrDefault(),
-                        Name = item.League.Name,
-                        Start = item.Fixture.Date.GetValueOrDefault().DateTime,
-                        Finished = item.Fixture.Status!.Long!.Equals("Match Finished", StringComparison.OrdinalIgnoreCase)
+                        LeagueId = item.League?.Id.GetValueOrDefault() ?? 0,
+                        Name = item.League?.Name,
+                        Start = item.Fixture?.Date.GetValueOrDefault().DateTime ?? DateTime.MinValue,
+                        Finished = item.Fixture?.Status?.Long?.Equals("Match Finished", StringComparison.OrdinalIgnoreCase) ?? false
                     });
 
-                    matches.AddRange(new[]
+                    matches.Add(new()
                     {
-                    new Match { FixtureId = fixtureId, TeamId = homeTeamId, Goals = item.Goals!.Home.GetValueOrDefault() },
-                    new Match { FixtureId = fixtureId, TeamId = awayTeamId, Goals = item.Goals!.Away.GetValueOrDefault() }
-                });
+                        FixtureId = fixtureId,
+                        HomeId = homeTeamId,
+                        AwayId = awayTeamId,
+                        HomeGoals = item.Goals?.Home.GetValueOrDefault() ?? 0,
+                        AwayGoals = item.Goals?.Away.GetValueOrDefault() ?? 0
+                    });
 
                     teams.AddRange(new[]
                     {
-                    new Team { Id = homeTeamId, Name = item.Teams.Home.Name, Image = item.Teams.Home.Logo },
-                    new Team { Id = awayTeamId, Name = item.Teams.Away.Name, Image = item.Teams.Away.Logo }
+                    new Team { Id = homeTeamId, Name = item.Teams?.Home?.Name, Image = item.Teams?.Home?.Logo },
+                    new Team { Id = awayTeamId, Name = item.Teams?.Away?.Name, Image = item.Teams?.Away?.Logo }
                 });
                 }
 
