@@ -5,5 +5,5 @@ namespace PalpiteFC.Worker.Guesses.Interfaces;
 
 public interface IPointsService
 {
-    Task<int> CalculatePoints(Guess guess, Match match);
+    int CalculatePoints(Guess guess, Match match);
 }

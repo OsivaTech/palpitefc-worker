@@ -72,18 +72,24 @@ public class GuessesService : IGuessesService
 
             foreach (var guess in guesses)
             {
-                var earnedPoints = await _pointsService.CalculatePoints(guess, retreivedFixture);
+                var pointExists = await _userPointsRepository.CheckExistingPoint(fixture.Id, guess.UserId);
 
-                if (earnedPoints > 0)
+                if (pointExists)
                 {
-                    await _userPointsRepository.Insert(new()
-                    {
-                        UserId = guess.UserId,
-                        FixtureId = guess.FixtureId,
-                        Points = earnedPoints,
-                        PointSeasonId = pointSeason.Id
-                    });
+                    _logger.LogInformation("User {UserId} has already points for game {FixtureId}", guess.UserId, guess.FixtureId);
+                    continue;
                 }
+
+                var earnedPoints = _pointsService.CalculatePoints(guess, retreivedFixture);
+
+                await _userPointsRepository.Insert(new()
+                {
+                    UserId = guess.UserId,
+                    FixtureId = guess.FixtureId,
+                    Points = earnedPoints,
+                    PointSeasonId = pointSeason.Id,
+                    GuessId = guess.Id
+                });
             }
 
             return true;

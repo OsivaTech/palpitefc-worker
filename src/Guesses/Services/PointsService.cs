@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using PalpiteFC.Libraries.Persistence.Abstractions.Entities;
-using PalpiteFC.Libraries.Persistence.Abstractions.Repositories;
 using PalpiteFC.Worker.Guesses.Interfaces;
 using PalpiteFC.Worker.Guesses.Settings;
 using Match = PalpiteFC.Worker.Integrations.Providers.Responses.Match;
@@ -9,40 +8,28 @@ namespace PalpiteFC.Worker.Guesses.Services;
 
 public class PointsService : IPointsService
 {
-    private readonly IUserPointsRepository _userPointsRepository;
     private readonly IOptions<WorkerSettings> _workerSettings;
     private readonly ILogger<PointsService> _logger;
 
-    public PointsService(IOptions<WorkerSettings> workerSettings, IUserPointsRepository userPointsRepository, ILogger<PointsService> logger)
+    public PointsService(IOptions<WorkerSettings> workerSettings, ILogger<PointsService> logger)
     {
         _workerSettings = workerSettings;
-        _userPointsRepository = userPointsRepository;
         _logger = logger;
     }
 
-    public async Task<int> CalculatePoints(Guess guess, Match match)
+    public int CalculatePoints(Guess guess, Match match)
     {
         _logger.LogInformation("Calculating points for user {UserId} and guess {GuessId}", guess.UserId, guess.Id);
 
+        var earnedPoints = 0;
         var isValidGuess = guess.HomeTeamGoals == match.Goals?.Home && guess.AwayTeamGoals == match.Goals?.Away;
 
-        if (isValidGuess is false)
+        if (isValidGuess)
         {
-            _logger.LogInformation("Guess {GuessId} is wrong. User {UserId} did not win any points", guess.Id, guess.UserId);
-            return 0;
+            earnedPoints = _workerSettings.Value.Points!.HitResult;
         }
 
-        var existingPoint = await _userPointsRepository.SelectByUserId(guess.UserId);
-
-        if (existingPoint.Any(w => w.FixtureId == guess.FixtureId))
-        {
-            _logger.LogInformation("User {UserId} has already points for game {FixtureId}", guess.UserId, guess.FixtureId);
-            return 0;
-        }
-
-        var earnedPoints = _workerSettings.Value.Points!.HitResult;
-
-        _logger.LogInformation("Guess {GuessId} is correct. User {UserId} won {Points} points", guess.Id, guess.UserId, earnedPoints);
+        _logger.LogInformation("Guess {GuessId} is {GuessIs}. User {UserId} won {Points} points", guess.Id, isValidGuess ? "correct" : "wrong", guess.UserId, earnedPoints);
 
         return earnedPoints;
     }
