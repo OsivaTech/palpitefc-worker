@@ -22,7 +22,7 @@ public class PointsService : IPointsService
         _logger.LogInformation("Calculating points for user {UserId} and guess {GuessId}", guess.UserId, guess.Id);
 
         var earnedPoints = 0;
-        var isValidGuess = guess.HomeTeamGoals == match.Goals?.Home && guess.AwayTeamGoals == match.Goals?.Away;
+        var isValidGuess = guess.HomeGoals == match.Goals?.Home && guess.AwayGoals == match.Goals?.Away;
 
         if (isValidGuess)
         {

@@ -86,8 +86,8 @@ public class Worker : BackgroundService
                 foreach (var item in matchesJoined)
                 {
                     var fixtureId = item.Fixture?.Id.GetValueOrDefault() ?? 0;
-                    var homeTeamId = item.Teams?.Home?.Id.GetValueOrDefault() ?? 0;
-                    var awayTeamId = item.Teams?.Away?.Id.GetValueOrDefault() ?? 0;
+                    var homeId = item.Teams?.Home?.Id.GetValueOrDefault() ?? 0;
+                    var awayId = item.Teams?.Away?.Id.GetValueOrDefault() ?? 0;
 
                     fixtures.Add(new()
                     {
@@ -101,16 +101,16 @@ public class Worker : BackgroundService
                     matches.Add(new()
                     {
                         FixtureId = fixtureId,
-                        HomeId = homeTeamId,
-                        AwayId = awayTeamId,
+                        HomeId = homeId,
+                        AwayId = awayId,
                         HomeGoals = item.Goals?.Home.GetValueOrDefault() ?? 0,
                         AwayGoals = item.Goals?.Away.GetValueOrDefault() ?? 0
                     });
 
                     teams.AddRange(new[]
                     {
-                    new Team { Id = homeTeamId, Name = item.Teams?.Home?.Name, Image = item.Teams?.Home?.Logo },
-                    new Team { Id = awayTeamId, Name = item.Teams?.Away?.Name, Image = item.Teams?.Away?.Logo }
+                    new Team { Id = homeId, Name = item.Teams?.Home?.Name, Image = item.Teams?.Home?.Logo },
+                    new Team { Id = awayId, Name = item.Teams?.Away?.Name, Image = item.Teams?.Away?.Logo }
                 });
                 }
 
