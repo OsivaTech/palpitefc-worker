@@ -19,7 +19,7 @@ public class ApiFootballProvider : IApiFootballProvider
         _logger = logger;
     }
 
-    public async Task<IEnumerable<Match>> GetFixtures(FixturesRequest request)
+    public async Task<IEnumerable<FixtureResponse>> GetFixtures(FixturesRequest request)
     {
         var queryBuilder = new QueryBuilder();
 
@@ -36,12 +36,12 @@ public class ApiFootballProvider : IApiFootballProvider
 
         var content = await response.Content.ReadAsStringAsync();
 
-        var result = JsonSerializer.Deserialize<ApiFootballResult<Match>>(content, _serializerOptions);
+        var result = JsonSerializer.Deserialize<ApiFootballResult<FixtureResponse>>(content, _serializerOptions);
 
         return result!.Response!;
     }
 
-    public async Task<Match> GetFixture(int fixtureId)
+    public async Task<FixtureResponse> GetFixture(int fixtureId)
     {
         var uri = $"/v3/fixtures?id={fixtureId}";
 
@@ -55,8 +55,25 @@ public class ApiFootballProvider : IApiFootballProvider
             return null!;
         }
 
-        var result = JsonSerializer.Deserialize<ApiFootballResult<Match>>(content, _serializerOptions);
+        var result = JsonSerializer.Deserialize<ApiFootballResult<FixtureResponse>>(content, _serializerOptions);
 
-        return result!.Response!.FirstOrDefault(new Match());
+        return result!.Response!.FirstOrDefault(new FixtureResponse());
+    }
+
+    public async Task<IEnumerable<LeagueResponse>> GetLeagues(LeaguesRequest request)
+    {
+        var queryBuilder = new QueryBuilder();
+
+        if (request.Season > 0) queryBuilder.Add("season", request.Season.ToString());
+
+        var uri = $"/v3/leagues{queryBuilder.ToQueryString()}";
+
+        var response = await _httpClient.GetAsync(uri);
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        var result = JsonSerializer.Deserialize<ApiFootballResult<LeagueResponse>>(content, _serializerOptions);
+
+        return result!.Response!;
     }
 }

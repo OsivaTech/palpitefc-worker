@@ -2,7 +2,7 @@
 using PalpiteFC.Libraries.Persistence.Abstractions.Entities;
 using PalpiteFC.Worker.Guesses.Interfaces;
 using PalpiteFC.Worker.Guesses.Settings;
-using Match = PalpiteFC.Worker.Integrations.Providers.Responses.Match;
+using PalpiteFC.Worker.Integrations.Providers.Responses;
 
 namespace PalpiteFC.Worker.Guesses.Services;
 
@@ -17,12 +17,12 @@ public class PointsService : IPointsService
         _logger = logger;
     }
 
-    public int CalculatePoints(Guess guess, Match match)
+    public int CalculatePoints(Guess guess, FixtureResponse fixture)
     {
         _logger.LogInformation("Calculating points for user {UserId} and guess {GuessId}", guess.UserId, guess.Id);
 
         var earnedPoints = 0;
-        var isValidGuess = guess.HomeGoals == match.Goals?.Home && guess.AwayGoals == match.Goals?.Away;
+        var isValidGuess = guess.HomeGoals == fixture.Goals?.Home && guess.AwayGoals == fixture.Goals?.Away;
 
         if (isValidGuess)
         {

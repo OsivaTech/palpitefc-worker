@@ -5,6 +5,7 @@ namespace PalpiteFC.Worker.Integrations.Interfaces;
 
 public interface IApiFootballProvider
 {
-    Task<IEnumerable<Match>> GetFixtures(FixturesRequest request);
-    Task<Match> GetFixture(int fixtureId);
+    Task<IEnumerable<FixtureResponse>> GetFixtures(FixturesRequest request);
+    Task<FixtureResponse> GetFixture(int fixtureId);
+    Task<IEnumerable<LeagueResponse>> GetLeagues(LeaguesRequest request);
 }

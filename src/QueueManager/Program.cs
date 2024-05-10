@@ -1,4 +1,5 @@
 ﻿using MassTransit;
+using PalpiteFC.Libraries.Persistence.Database.Connection;
 using PalpiteFC.Libraries.Persistence.Database.Extensions;
 using PalpiteFC.Libraries.Persistence.Database.Settings;
 using PalpiteFC.Worker.Persistence.Interfaces;
@@ -48,6 +49,10 @@ try
     builder.Services.AddTransient<IGuessService, GuessService>();
 
     var host = builder.Build();
+
+    using var scope = host.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<DataContext>();
+    await context.Init();
 
     Log.Information("Service configured. Starting...");
 

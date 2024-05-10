@@ -1,6 +1,9 @@
+using PalpiteFC.Libraries.Persistence.Database.Connection;
 using PalpiteFC.Libraries.Persistence.Database.Extensions;
 using PalpiteFC.Libraries.Persistence.Database.Settings;
 using PalpiteFC.Worker.Games;
+using PalpiteFC.Worker.Games.Interfaces;
+using PalpiteFC.Worker.Games.Services;
 using PalpiteFC.Worker.Games.Settings;
 using PalpiteFC.Worker.Integrations.Extensions;
 using Serilog;
@@ -23,10 +26,17 @@ try
     builder.Services.Configure<DbSettings>(builder.Configuration.GetSection("Settings:Database:MySql"));
     builder.Services.Configure<WorkerSettings>(builder.Configuration.GetSection("Settings:Worker"));
 
+    builder.Services.AddTransient<ILeaguesService, LeaguesService>();
+    builder.Services.AddTransient<IFixturesService, FixturesService>();
+
     builder.Services.AddIntegrationServices(builder.Configuration);
     builder.Services.AddDatabase(true);
 
     var host = builder.Build();
+
+    using var scope = host.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<DataContext>();
+    await context.Init();
 
     Log.Information("Service configured. Starting...");
 
