@@ -26,7 +26,6 @@ try
     builder.Services.Configure<DbSettings>(builder.Configuration.GetSection("Settings:Database:MySql"));
     builder.Services.Configure<WorkerSettings>(builder.Configuration.GetSection("Settings:Worker"));
 
-    builder.Services.AddTransient<ILeaguesService, LeaguesService>();
     builder.Services.AddTransient<IFixturesService, FixturesService>();
 
     builder.Services.AddIntegrationServices(builder.Configuration);

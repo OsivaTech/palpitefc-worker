@@ -7,5 +7,4 @@ public interface IApiFootballProvider
 {
     Task<IEnumerable<FixtureResponse>> GetFixtures(FixturesRequest request);
     Task<FixtureResponse> GetFixture(int fixtureId);
-    Task<IEnumerable<LeagueResponse>> GetLeagues(LeaguesRequest request);
 }

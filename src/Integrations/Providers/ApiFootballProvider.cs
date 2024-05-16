@@ -59,21 +59,4 @@ public class ApiFootballProvider : IApiFootballProvider
 
         return result!.Response!.FirstOrDefault(new FixtureResponse());
     }
-
-    public async Task<IEnumerable<LeagueResponse>> GetLeagues(LeaguesRequest request)
-    {
-        var queryBuilder = new QueryBuilder();
-
-        if (request.Season > 0) queryBuilder.Add("season", request.Season.ToString());
-
-        var uri = $"/v3/leagues{queryBuilder.ToQueryString()}";
-
-        var response = await _httpClient.GetAsync(uri);
-
-        var content = await response.Content.ReadAsStringAsync();
-
-        var result = JsonSerializer.Deserialize<ApiFootballResult<LeagueResponse>>(content, _serializerOptions);
-
-        return result!.Response!;
-    }
 }

@@ -6,14 +6,12 @@ namespace PalpiteFC.Worker.Games;
 
 public class Worker : BackgroundService
 {
-    private readonly ILeaguesService _leaguesService;
     private readonly IFixturesService _fixturesService;
     private readonly ILogger<Worker> _logger;
     private readonly IOptions<WorkerSettings> _options;
 
-    public Worker(ILeaguesService leaguesService, IFixturesService fixturesService, ILogger<Worker> logger, IOptions<WorkerSettings> options)
+    public Worker(IFixturesService fixturesService, ILogger<Worker> logger, IOptions<WorkerSettings> options)
     {
-        _leaguesService = leaguesService;
         _fixturesService = fixturesService;
         _logger = logger;
         _options = options;
@@ -25,14 +23,6 @@ public class Worker : BackgroundService
         {
             try
             {
-                if (await _leaguesService.TryProcessAsync(stoppingToken) is false)
-                {
-                    _logger.LogError("Failed to process leagues, trying again soon...");
-                    await Task.Delay(_options.Value.RestartDelay, stoppingToken);
-
-                    continue;
-                }
-
                 if (await _fixturesService.TryProcessAsync(stoppingToken) is false)
                 {
                     _logger.LogError("Failed to process fixtures, trying again soon...");
