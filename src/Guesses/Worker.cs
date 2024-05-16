@@ -12,19 +12,16 @@ public class Worker : BackgroundService
     private readonly ILogger<Worker> _logger;
     private readonly IOptions<WorkerSettings> _options;
     private readonly IFixturesRepository _fixturesRepository;
-    private readonly IPointSeasonsRepository _pointSeasonsRepository;
     private readonly IGuessesService _guessesProcessorService;
 
     public Worker(ILogger<Worker> logger,
                   IOptions<WorkerSettings> options,
                   IFixturesRepository fixturesRepository,
-                  IPointSeasonsRepository pointSeasonsRepository,
                   IGuessesService guessesProcessorService)
     {
         _logger = logger;
         _options = options;
         _fixturesRepository = fixturesRepository;
-        _pointSeasonsRepository = pointSeasonsRepository;
         _guessesProcessorService = guessesProcessorService;
     }
 
@@ -35,18 +32,6 @@ public class Worker : BackgroundService
             try
             {
                 var queue = new Queue<QueueObject<Fixture>>();
-
-                var pointSeason = await _pointSeasonsRepository.SelectCurrent();
-
-                if (pointSeason is null)
-                {
-                    _logger.LogWarning("No PointSeason was found for the current period. Breaking operation.");
-                    await Task.Delay(_options.Value.RestartDelay, stoppingToken);
-
-                    continue;
-                }
-
-                _logger.LogInformation("Current PointSeason is {PointSeasonId}.", pointSeason.Id);
 
                 var fixtures = await _fixturesRepository.Select(DateTime.Now.Date, DateTime.Now.Date.AddDays(1).AddTicks(-1));
                 _logger.LogInformation("Found {FixtureCount} fixtures.", fixtures.Count());
@@ -69,7 +54,7 @@ public class Worker : BackgroundService
                         continue;
                     }
 
-                    var result = await _guessesProcessorService.TryProcessAsync(fixture.Data, pointSeason);
+                    var result = await _guessesProcessorService.TryProcessAsync(fixture.Data);
 
                     if (result is false)
                     {

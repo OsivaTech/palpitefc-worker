@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
-    <PackageReference Include="PalpiteFC.Libraries.Persistence.Database" Version="1.0.0-alfa.29" />
+    <PackageReference Include="PalpiteFC.Libraries.Persistence.Database" Version="1.0.0-alfa.31" />
     <PackageReference Include="Serilog.Enrichers.Environment" Version="2.3.0" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.0" />

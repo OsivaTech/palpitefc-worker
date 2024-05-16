@@ -37,12 +37,12 @@ public class GuessesService : IGuessesService
 
     #endregion
 
-    public async Task<bool> TryProcessAsync(Fixture fixture, PointSeason pointSeason)
+    public async Task<bool> TryProcessAsync(Fixture fixture)
     {
         try
         {
             _logger.LogInformation("Retreiving fixture {FixtureId} informations.", fixture.Id);
-            var retreivedFixture = await _apiFootballProvider.GetFixture(fixture.Id);
+            var retreivedFixture = await _apiFootballProvider.GetFixture(fixture.ExternalId);
 
             if (retreivedFixture is null)
             {
@@ -82,12 +82,11 @@ public class GuessesService : IGuessesService
 
                 var earnedPoints = _pointsService.CalculatePoints(guess, retreivedFixture);
 
-                await _userPointsRepository.Insert(new()
+                await _userPointsRepository.Insert(new UserPoint()
                 {
                     UserId = guess.UserId,
                     FixtureId = guess.FixtureId,
                     Points = earnedPoints,
-                    PointSeasonId = pointSeason.Id,
                     GuessId = guess.Id
                 });
             }

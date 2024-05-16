@@ -4,5 +4,5 @@ namespace PalpiteFC.Worker.Guesses.Interfaces;
 
 public interface IGuessesService
 {
-    Task<bool> TryProcessAsync(Fixture fixture, PointSeason pointSeason);
+    Task<bool> TryProcessAsync(Fixture fixture);
 }
