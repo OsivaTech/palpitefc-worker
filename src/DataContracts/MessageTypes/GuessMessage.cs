@@ -1,4 +1,4 @@
-﻿namespace PalpiteFC.DataContracts.MessageTypes;
+﻿namespace PalpiteFC.Libraries.DataContracts.MessageTypes;
 
 public class GuessMessage
 {

@@ -1,5 +1,5 @@
 ﻿using MassTransit;
-using PalpiteFC.DataContracts.MessageTypes;
+using PalpiteFC.Libraries.DataContracts.MessageTypes;
 using PalpiteFC.Worker.Persistence.Interfaces;
 
 namespace PalpiteFC.Worker.QueueManager.Consumers;

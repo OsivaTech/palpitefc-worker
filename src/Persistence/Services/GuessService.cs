@@ -1,5 +1,5 @@
 ﻿using Mapster;
-using PalpiteFC.DataContracts.MessageTypes;
+using PalpiteFC.Libraries.DataContracts.MessageTypes;
 using PalpiteFC.Libraries.Persistence.Abstractions.Entities;
 using PalpiteFC.Libraries.Persistence.Abstractions.Repositories;
 using PalpiteFC.Worker.Persistence.Interfaces;

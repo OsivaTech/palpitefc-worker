@@ -1,5 +1,5 @@
 ﻿using PalpiteFC.Libraries.Persistence.Abstractions.Entities;
-using PalpiteFC.DataContracts.MessageTypes;
+using PalpiteFC.Libraries.DataContracts.MessageTypes;
 namespace PalpiteFC.Worker.Persistence.Interfaces;
 
 public interface IGuessService
