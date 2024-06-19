@@ -5,6 +5,7 @@ using PalpiteFC.Libraries.Persistence.Database.Settings;
 using PalpiteFC.Worker.Persistence.Interfaces;
 using PalpiteFC.Worker.Persistence.Services;
 using PalpiteFC.Worker.QueueManager.Consumers;
+using PalpiteFC.Worker.QueueManager.Settings;
 using Serilog;
 
 try
@@ -24,6 +25,8 @@ try
     builder.Services.AddMassTransit(x =>
     {
         x.AddConsumer<GuessConsumer>();
+        x.AddConsumer<WaitingListConsumer>();
+
         x.UsingRabbitMq((context, cfg) =>
         {
             cfg.Host(builder.Configuration.GetValue<string>("Settings:RabbitMQ:Host"), "/", h =>
@@ -39,12 +42,16 @@ try
 
                 x.PrefetchCount = 10;
                 x.ConcurrentMessageLimit = 2;
-                
+
                 x.ConfigureConsumer<GuessConsumer>(context);
+                x.ConfigureConsumer<WaitingListConsumer>(context);
             });
         });
     });
+
     builder.Services.Configure<DbSettings>(builder.Configuration.GetSection("Settings:Database:MySql"));
+    builder.Services.Configure<MailingSettings>(builder.Configuration.GetSection("Settings:Mailing"));
+
     builder.Services.AddDatabase(true);
     builder.Services.AddTransient<IGuessService, GuessService>();
 
