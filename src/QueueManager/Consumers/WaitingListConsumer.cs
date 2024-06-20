@@ -557,10 +557,11 @@ public class WaitingListConsumer : IConsumer<WaitingListEmailMessage>
                                                                         palpites gratuitos.
                                                                         <br>
                                                                         <br>
-                                                                        Por favor, para garantir as comunicações de
-                                                                        eventuais premiações, adicione esse email na
-                                                                        lista de emails favoritos, para garantir que
-                                                                        futuras mensagens não sejam marcadas como spam.
+                                                                        Para ficar sabendo de todas as novidades, em
+                                                                        primeira mão, siga nossa página no <a
+                                                                            target=""_blank""
+                                                                            href=""https://www.instagram.com/palpitefutebolclube""
+                                                                            style=""-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;text-decoration:underline;color:#5C68E2;font-size:14px"">Instagram</a>.
                                                                     </p>
                                                                 </td>
                                                             </tr>
@@ -597,10 +598,10 @@ public class WaitingListConsumer : IConsumer<WaitingListEmailMessage>
                                                                     style=""padding:0;Margin:0;padding-bottom:10px;padding-top:20px"">
                                                                     <p
                                                                         style=""Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:21px;color:#333333;font-size:14px"">
-                                                                        Tem alguma dúvida? Mande uma mensagem no nosso
+                                                                        Tem alguma dúvida? Mande uma mensagem pra gente,
                                                                         <a target=""_blank""
                                                                             href=""https://www.instagram.com/palpitefutebolclube""
-                                                                            style=""-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;text-decoration:underline;color:#5C68E2;font-size:14px"">Instagram</a>.
+                                                                            style=""-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;text-decoration:underline;color:#5C68E2;font-size:14px"">clicando aqui</a>.
                                                                     </p>
                                                                     <p
                                                                         style=""Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-family:arial, 'helvetica neue', helvetica, sans-serif;line-height:21px;color:#333333;font-size:14px"">
