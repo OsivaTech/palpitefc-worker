@@ -1,7 +1,9 @@
-﻿using PalpiteFC.Libraries.Persistence.Abstractions.Entities;
+﻿using PalpiteFC.Libraries.Persistence.Abstractions.Connection;
+using PalpiteFC.Libraries.Persistence.Abstractions.Entities;
 using PalpiteFC.Libraries.Persistence.Abstractions.Repositories;
 using PalpiteFC.Worker.Guesses.Interfaces;
 using PalpiteFC.Worker.Integrations.Interfaces;
+using System.Text.Json;
 
 namespace PalpiteFC.Worker.Guesses.Services;
 
@@ -14,6 +16,7 @@ public class GuessesService : IGuessesService
     private readonly IGuessesRepository _guessesRepository;
     private readonly IUserPointsRepository _userPointsRepository;
     private readonly IPointsService _pointsService;
+    private readonly IUnitOfWork _unitOfWork;
 
     private static readonly string[] finishedStatus = ["PEN", "AET", "FT"];
     private static readonly string[] unprocessableStatus = ["TBD", "NS", "PST", "CANC", "ABD", "AWD", "WO"];
@@ -26,13 +29,15 @@ public class GuessesService : IGuessesService
                           IApiFootballProvider apiFootballProvider,
                           IGuessesRepository guessesRepository,
                           IUserPointsRepository userPointsRepository,
-                          IPointsService pointsService)
+                          IPointsService pointsService,
+                          IUnitOfWork unitOfWork)
     {
         _logger = logger;
         _apiFootballProvider = apiFootballProvider;
         _guessesRepository = guessesRepository;
         _userPointsRepository = userPointsRepository;
         _pointsService = pointsService;
+        _unitOfWork = unitOfWork;
     }
 
     #endregion
@@ -80,21 +85,35 @@ public class GuessesService : IGuessesService
                     continue;
                 }
 
+                _logger.LogInformation("Calculating points for user {UserId} and guess {GuessId}", guess.UserId, guess.Id);
+
                 var earnedPoints = _pointsService.CalculatePoints(guess, retreivedFixture);
 
-                await _userPointsRepository.Insert(new UserPoint()
+                _logger.LogInformation("Guess {GuessId} for user {UserId} results: {Results}", guess.Id, guess.UserId, JsonSerializer.Serialize(earnedPoints));
+
+                _unitOfWork.BeginTransaction();
+
+                foreach (var item in earnedPoints)
                 {
-                    UserId = guess.UserId,
-                    FixtureId = guess.FixtureId,
-                    Points = earnedPoints,
-                    GuessId = guess.Id
-                });
+                    await _userPointsRepository.Insert(new UserPoint()
+                    {
+                        UserId = guess.UserId,
+                        FixtureId = guess.FixtureId,
+                        Points = item.Points,
+                        Type = item.Type.ToString(),
+                        GuessId = guess.Id
+                    });
+                }
+
+                _unitOfWork.Commit();
             }
 
             return true;
         }
         catch (Exception ex)
         {
+            _unitOfWork.Rollback();
+
             _logger.LogError(ex, "An error occurred: {Message}", ex.Message);
             return false;
         }

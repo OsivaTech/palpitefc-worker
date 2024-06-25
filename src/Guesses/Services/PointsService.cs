@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using PalpiteFC.Libraries.Persistence.Abstractions.Entities;
+using PalpiteFC.Worker.Guesses.DataContracts;
+using PalpiteFC.Worker.Guesses.Enums;
 using PalpiteFC.Worker.Guesses.Interfaces;
 using PalpiteFC.Worker.Guesses.Settings;
 using PalpiteFC.Worker.Integrations.Providers.Responses;
@@ -8,29 +10,114 @@ namespace PalpiteFC.Worker.Guesses.Services;
 
 public class PointsService : IPointsService
 {
-    private readonly IOptions<WorkerSettings> _workerSettings;
-    private readonly ILogger<PointsService> _logger;
+    #region Fields
 
-    public PointsService(IOptions<WorkerSettings> workerSettings, ILogger<PointsService> logger)
+    private readonly IOptions<WorkerSettings> _workerSettings;
+
+    #endregion
+
+    #region Constructor
+
+    public PointsService(IOptions<WorkerSettings> workerSettings)
     {
         _workerSettings = workerSettings;
-        _logger = logger;
     }
 
-    public int CalculatePoints(Guess guess, FixtureResponse fixture)
+    #endregion
+
+    #region Public Methods
+
+    public IEnumerable<PointsResult> CalculatePoints(Guess guess, FixtureResponse fixture)
     {
-        _logger.LogInformation("Calculating points for user {UserId} and guess {GuessId}", guess.UserId, guess.Id);
+        var pointsResult = new List<PointsResult>();
 
-        var earnedPoints = 0;
-        var isValidGuess = guess.HomeGoals == fixture.Goals?.Home && guess.AwayGoals == fixture.Goals?.Away;
+        var isExactScore = IsExactScorePrediction(guess, fixture);
+        var isCorrectGoalDiff = IsCorrectGoalDifferencePrediction(guess, fixture);
+        var isValidResult = IsMatchWinnerPrediction(guess, fixture);
+        var isEarlierGuess = IsEarlyPrediction(guess, fixture);
 
-        if (isValidGuess)
+        if (isExactScore)
         {
-            earnedPoints = _workerSettings.Value.Points!.HitResult;
+            pointsResult.Add(new PointsResult
+            {
+                Type = PointType.ES,
+                Points = _workerSettings.Value.Points!.ExactScore
+            });
+        }
+        else if (isCorrectGoalDiff)
+        {
+            pointsResult.Add(new PointsResult
+            {
+                Type = PointType.GD,
+                Points = _workerSettings.Value.Points!.GoalDifference
+            });
+        }
+        else if (isValidResult)
+        {
+            pointsResult.Add(new PointsResult
+            {
+                Type = PointType.MW,
+                Points = _workerSettings.Value.Points!.MatchWinner
+            });
         }
 
-        _logger.LogInformation("Guess {GuessId} is {GuessIs}. User {UserId} won {Points} points", guess.Id, isValidGuess ? "correct" : "wrong", guess.UserId, earnedPoints);
+        if (isEarlierGuess)
+        {
+            pointsResult.Add(new PointsResult
+            {
+                Type = PointType.EB,
+                Points = _workerSettings.Value.Points!.EarlyBonus
+            });
+        }
 
-        return earnedPoints;
+        return pointsResult;
     }
+
+    #endregion
+
+    #region Non-Public Methods
+
+    private static bool IsExactScorePrediction(Guess guess, FixtureResponse fixture)
+    {
+        var actualHomeGoals = fixture.Goals?.Home ?? 0;
+        var actualAwayGoals = fixture.Goals?.Away ?? 0;
+
+        return guess.HomeGoals == actualHomeGoals && guess.AwayGoals == actualAwayGoals;
+    }
+
+    private static bool IsCorrectGoalDifferencePrediction(Guess guess, FixtureResponse fixture)
+    {
+        var actualHomeGoals = fixture.Goals?.Home ?? 0;
+        var actualAwayGoals = fixture.Goals?.Away ?? 0;
+
+        var guessGoalDifference = Math.Abs(guess.HomeGoals - guess.AwayGoals);
+        var actualGoalDifference = Math.Abs(actualHomeGoals - actualAwayGoals);
+
+        return (guessGoalDifference != 0 || actualGoalDifference != 0) && guessGoalDifference == actualGoalDifference;
+    }
+
+    private static bool IsMatchWinnerPrediction(Guess guess, FixtureResponse fixture)
+    {
+        var actualHomeGoals = fixture.Goals?.Home ?? 0;
+        var actualAwayGoals = fixture.Goals?.Away ?? 0;
+
+        var guessHomeWin = guess.HomeGoals > guess.AwayGoals;
+        var guessAwayWin = guess.HomeGoals < guess.AwayGoals;
+        var guessDraw = guess.HomeGoals == guess.AwayGoals;
+
+        var actualHomeWin = actualHomeGoals > actualAwayGoals;
+        var actualAwayWin = actualHomeGoals < actualAwayGoals;
+        var actualDraw = actualHomeGoals == actualAwayGoals;
+
+        return (guessHomeWin && actualHomeWin) || (guessAwayWin && actualAwayWin) || (guessDraw && actualDraw);
+    }
+
+    private bool IsEarlyPrediction(Guess guess, FixtureResponse fixture)
+    {
+        var fixtureStartTime = fixture.Fixture?.Date ?? DateTime.MinValue;
+
+        return guess.GuessDate <= fixtureStartTime.Add(-_workerSettings.Value.EarlyBonusTime);
+    }
+
+    #endregion
 }
