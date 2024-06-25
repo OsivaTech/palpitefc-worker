@@ -93,7 +93,7 @@ public class FixturesService : IFixturesService
                 DataSourceId = 1,
                 LeagueId = item.League?.Id.GetValueOrDefault() ?? 0,
                 Name = item.League?.Name,
-                Start = item.Fixture?.Date.GetValueOrDefault().DateTime ?? DateTime.MinValue,
+                Start = item.Fixture?.Date.GetValueOrDefault().UtcDateTime ?? DateTime.MinValue,
                 Finished = item.Fixture?.Status?.Long?.Equals("Match Finished", StringComparison.OrdinalIgnoreCase) ?? false
             });
 
