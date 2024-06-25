@@ -61,7 +61,7 @@ public class PointsService : IPointsService
             });
         }
 
-        if (isEarlierGuess)
+        if ((isExactScore || isCorrectGoalDiff || isValidResult) && isEarlierGuess)
         {
             pointsResult.Add(new PointsResult
             {
